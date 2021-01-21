@@ -19,13 +19,15 @@ void setup()
 {
     Serial.begin(115200);
     Serial.println("Programma iniziato");
-
 }
 
+void testDraw()
+{
+    Display.drawString(0, 0, NHDST7565::W_5_H_8, "Ciao mondo");
+}
 
 void loop()
 {
-    Display.testDisplay();
-    delay(1000);
-
+    Display.drawDisplay(testDraw);
+    delay(500);
 }
