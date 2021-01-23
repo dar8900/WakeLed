@@ -1,5 +1,6 @@
 #include "../headers/rotary.h"
 
+
 ROTARY::ROTARY()
 {
     pinMode(D3, INPUT_PULLUP);

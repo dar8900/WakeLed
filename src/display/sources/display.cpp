@@ -9,13 +9,6 @@ NHDST7565::NHDST7565()
     u8g2->begin();
 }
 
-void NHDST7565::testDisplay()
-{
-    u8g2->clearBuffer();					// clear the internal memory
-    u8g2->setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-    u8g2->drawStr(0,10,"Merdona");       	// write something to the internal memory
-    u8g2->sendBuffer();				    	// transfer internal memory to the display 
-}
 
 uint8_t NHDST7565::setTextLeft()
 {
@@ -34,17 +27,17 @@ uint8_t NHDST7565::setTextRight()
 
 uint8_t NHDST7565::setTextTop()
 {
-	return 1; 
+	return (displayText.textHigh + 1); 
 }
 
 uint8_t NHDST7565::setTextMiddle()
 {
-	return (((DISPLAY_HIGH - displayText.textHigh + 1) / 2) + (displayText.textHigh / 2) - displayText.textHigh); 
+	return ((DISPLAY_HIGH / 2) + (displayText.textHigh / 2));
 }
 
 uint8_t NHDST7565::setTextBottom()
 {
-	return (DISPLAY_HIGH - 1 - displayText.textHigh);
+	return (DISPLAY_HIGH - 1);
 }
 
 void NHDST7565::setTextParams(DispString Text, uint8_t Font)
@@ -153,6 +146,15 @@ void NHDST7565::clearDisplay()
     u8g2->sendBuffer();
 }
 
+void NHDST7565::clearBuff()
+{
+	u8g2->clearBuffer();
+}
+void NHDST7565::sendBuff()
+{
+	u8g2->sendBuffer();
+}
+
 void NHDST7565::drawUnicodeChar(uint8_t XPos, uint8_t YPos, uint8_t Font, uint16_t CharCode)
 {
 	uint8_t NewXPos = 0, NewYPos = 0;
@@ -166,10 +168,8 @@ void NHDST7565::drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString 
     uint8_t NewXPos = 0, NewYPos = 0;
     setTextParams(String, Font);
     setCoordinates(XPos, YPos, NewXPos, NewYPos);
-    u8g2->drawStr(NewYPos, NewYPos, displayText.textString);
+    u8g2->drawStr(NewXPos, NewYPos, displayText.textString);
 }
-
-
 
 void NHDST7565::drawDisplay(void displayRoutine(void))
 {
@@ -177,3 +177,4 @@ void NHDST7565::drawDisplay(void displayRoutine(void))
     displayRoutine();
     u8g2->sendBuffer();
 }
+

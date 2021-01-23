@@ -2,6 +2,7 @@
 #define ROTARY_H
 #include <Arduino.h>
 #include <RotaryEncoder.h>
+#include "../../debug/headers/debug.h"
 
 class ROTARY
 {

@@ -2,7 +2,6 @@
 #define DISPLAY_H
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include <string>
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -49,8 +48,9 @@ class NHDST7565
         };
 	
         NHDST7565();
-        void testDisplay();
         void clearDisplay();
+        void clearBuff();
+        void sendBuff();
         void drawUnicodeChar(uint8_t XPos, uint8_t YPos, uint8_t Font, uint16_t CharCode);
         void drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString String);
         void drawPopUp(DispString PopupText, uint16_t Delay);
@@ -83,5 +83,6 @@ class NHDST7565
         void setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPos, uint8_t &NewYPos);
 
 };
+
 
 #endif

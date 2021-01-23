@@ -6,12 +6,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiUdp.h>
-#include <string>
-#include <sstream>
+#include "../../debug/headers/debug.h"
 #include <Chrono.h>
 #include <ctime>
+// #include "../../debug/headers/debug.h"
 
-typedef std::string WifiString;
+typedef String WifiString;
 
 class WIFI_STATION
 {
@@ -25,13 +25,15 @@ class WIFI_STATION
         const WifiString WEATHER_API_KEY = "ec79bf368720417f78abda66d4e47828";
         WifiString apiWeatherCall;
         uint16_t localHourShift = 3600; // shift di 1h rispetto all'ora di greenwitch
-        uint16_t timeRefreshFrq = 1000; // frequenza di rischiesta di orario (in ms)
+        uint16_t timeRefreshFrq = 30000; // frequenza di rischiesta di orario (in ms)
         bool wifiConnected = false;
         HTTPClient *httpWeatherReq;
         Chrono *weatherTimer;
         uint32_t epochTimestamp;
+        bool initWeather = true;
         void connectToWifi();
-        void getWeatherParameters();
+        void weatherHttpJson();
+        void getWeatherInfo(bool TakeInfoNow);
         uint32_t getTimestamp();
         WifiString getTimeFormatted();
         WifiString getDateFormatted();
@@ -53,6 +55,17 @@ class WIFI_STATION
             WifiString dateFormatted;
         }TIME_VARS;
         
+        enum
+        {
+            TEMPESTA = 0,
+            PIOVIGGINE,
+            PIOGGIA,
+            NEVE,
+            NEBBIA,
+            LIMPIDO,
+            NUVOLOSO,
+            UNKNOWN
+        };
         
         WEATHER_VARS weatherInfo;
         TIME_VARS timeDateInfo;
@@ -63,4 +76,3 @@ class WIFI_STATION
 };
 
 #endif
-
