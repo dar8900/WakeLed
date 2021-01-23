@@ -40,6 +40,8 @@ class WIFI_STATION
             float pressure; // in mbar, dividere per 1000
         }WEATHER_VARS;
         
+        WEATHER_VARS *weatherInfo;
+
         WIFI_STATION();
         void initWifiStation();
         uint32_t getTimestamp();

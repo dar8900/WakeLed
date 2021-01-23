@@ -40,7 +40,10 @@ void WIFI_STATION:: getWeatherParameters()
             WifiString Payload = WifiString(httpWeatherReq->getString().c_str());
             DynamicJsonDocument weatherInfoJASON(1024);
             deserializeJson(weatherInfoJASON, Payload.c_str());
+            weatherInfo.temperature = weatherInfoJASON["temperature"]["value"];
+            
         }
+        httpWeatherReq->end();
     }
 }
 
