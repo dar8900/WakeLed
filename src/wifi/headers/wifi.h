@@ -7,8 +7,10 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiUdp.h>
 #include "../../debug/headers/debug.h"
+#include "../../display/headers/display.h"
 #include <Chrono.h>
 #include <ctime>
+#include <string>
 // #include "../../debug/headers/debug.h"
 
 typedef String WifiString;
@@ -26,17 +28,17 @@ class WIFI_STATION
         WifiString apiWeatherCall;
         uint16_t localHourShift = 3600; // shift di 1h rispetto all'ora di greenwitch
         uint16_t timeRefreshFrq = 30000; // frequenza di rischiesta di orario (in ms)
-        bool wifiConnected = false;
         HTTPClient *httpWeatherReq;
         Chrono *weatherTimer;
+        Chrono *takeTimeBackUp;
         uint32_t epochTimestamp;
         bool initWeather = true;
         void connectToWifi();
         void weatherHttpJson();
         void getWeatherInfo(bool TakeInfoNow);
-        uint32_t getTimestamp();
-        WifiString getTimeFormatted();
-        WifiString getDateFormatted();
+        uint32_t getTimestamp(bool WifiConn);
+        DispString getTimeFormatted();
+        DispString getDateFormatted();
 
     public:
         typedef struct 
@@ -51,8 +53,9 @@ class WIFI_STATION
         typedef struct 
         {
             uint32_t timestamp;
-            WifiString timeFormatted;
-            WifiString dateFormatted;
+            DispString timeFormatted;
+            DispString dateFormatted;
+            uint8_t dayHour;
         }TIME_VARS;
         
         enum
@@ -69,7 +72,7 @@ class WIFI_STATION
         
         WEATHER_VARS weatherInfo;
         TIME_VARS timeDateInfo;
-
+        bool wifiConnected = false;
         WIFI_STATION();
         void initWifiStation();
         void run();

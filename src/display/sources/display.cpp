@@ -22,7 +22,7 @@ uint8_t NHDST7565::setTextCenter()
 
 uint8_t NHDST7565::setTextRight()
 {
-	return (DISPLAY_WIDTH - displayText.textWidth); 
+	return (DISPLAY_WIDTH - displayText.textWidth - 1); 
 }
 
 uint8_t NHDST7565::setTextTop()
@@ -65,11 +65,11 @@ void NHDST7565::setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPo
 	if(OldXPos <= DISPLAY_WIDTH && OldYPos <= DISPLAY_HIGH)
 	{
 		NewXPos = OldXPos;
-		NewYPos = OldYPos;
+		NewYPos = OldYPos + displayText.textHigh;
 	}
 	else if(OldXPos > DISPLAY_WIDTH && OldYPos <= DISPLAY_HIGH)
 	{
-		NewYPos = OldYPos;
+		NewYPos = OldYPos + displayText.textHigh;;
 		switch(OldXPos)
 		{
 			case LEFT_POS:

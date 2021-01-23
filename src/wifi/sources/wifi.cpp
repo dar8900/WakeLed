@@ -6,6 +6,7 @@ WIFI_STATION::WIFI_STATION()
     timeClient = new NTPClient(*ntpUDP, NTP_SERVER.c_str(), localHourShift, timeRefreshFrq);
     httpWeatherReq = new HTTPClient();
     weatherTimer = new Chrono(Chrono::SECONDS);
+    takeTimeBackUp = new Chrono(Chrono::MILLIS);
 }
 
 void WIFI_STATION::connectToWifi()
@@ -55,6 +56,7 @@ void WIFI_STATION::weatherHttpJson()
         weatherInfo.pressure = weatherInfoJASON["main"]["pressure"];
         weatherInfo.humidity = weatherInfoJASON["main"]["humidity"];
         weatherInfo.weatherID = weatherInfoJASON["weather"]["id"];
+        WakeledDebug.writeDebugString(String(weatherInfo.weatherID), "weatherHttpJson", true);
         if(weatherInfo.weatherID >= 200 && weatherInfo.weatherID < 300)
         {
             weatherInfo.weatherID = TEMPESTA;
@@ -95,7 +97,7 @@ void WIFI_STATION::getWeatherInfo(bool TakeInfoNow)
 { 
     if(!TakeInfoNow)
     {
-        if(weatherTimer->hasPassed(900, true))
+        if(weatherTimer->hasPassed(5, true))
         {
             weatherHttpJson();
         }
@@ -108,35 +110,44 @@ void WIFI_STATION::getWeatherInfo(bool TakeInfoNow)
 }
 
 
-uint32_t WIFI_STATION::getTimestamp()
+uint32_t WIFI_STATION::getTimestamp(bool WifiConn)
 {
     uint32_t ts = 0;
-    ts = timeClient->getEpochTime();
-    epochTimestamp = ts;
+    if(WifiConn)
+    {
+        ts = timeClient->getEpochTime();
+        epochTimestamp = ts;
+    }
+    else
+    {
+        ts = epochTimestamp;
+    }
     return ts;
 }
 
-WifiString WIFI_STATION::getTimeFormatted()
+DispString WIFI_STATION::getTimeFormatted()
 {
     uint8_t Hour = 0, Minute = 0;
     WifiString TimeStr = "";
     std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
     Hour = locTime->tm_hour;
+    timeDateInfo.dayHour = Hour;
     Minute = locTime->tm_min;
     TimeStr = (Hour < 10? "0" + String(Hour) : String(Hour)) + ":" + (Minute < 10? "0" + String(Minute) : String(Minute));
-    return TimeStr;
+    return DispString(TimeStr.c_str());
 }
 
-WifiString WIFI_STATION::getDateFormatted()
+DispString WIFI_STATION::getDateFormatted()
 {
     uint8_t Day = 0, Month = 0, Year = 0;
+    // WifiString DayStr = "", Month = "", YearStr = "";
     WifiString DateStr = "";
     std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
     Year = (1900 + locTime->tm_year) % 100;
     Month = 1 + locTime->tm_mon;
     Day = locTime->tm_mday;
     DateStr = (Day < 10? "0" + String(Day) : String(Day)) + "/" + (Month < 10? "0" + String(Month) : String(Month)) + "/" + String(Year);
-    return DateStr;
+    return DispString(DateStr.c_str());
 }
 
 void WIFI_STATION::initWifiStation()
@@ -161,12 +172,25 @@ void WIFI_STATION::run()
 {
     if(wifiConnected)
     {
+        takeTimeBackUp->stop();
         timeClient->update();
-        timeDateInfo.timestamp = getTimestamp();
+        timeDateInfo.timestamp = getTimestamp(wifiConnected);
         timeDateInfo.dateFormatted = getDateFormatted();
         timeDateInfo.timeFormatted = getTimeFormatted();
         getWeatherInfo(false);
     }
+    else
+    {
+        takeTimeBackUp->restart();
+        if(takeTimeBackUp->hasPassed(1000, true))
+        {
+            epochTimestamp++;
+        }
+        timeDateInfo.timestamp = getTimestamp(wifiConnected);
+        timeDateInfo.dateFormatted = getDateFormatted();
+        timeDateInfo.timeFormatted = getTimeFormatted();
+    }
+    
 }
 
 

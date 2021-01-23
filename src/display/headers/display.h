@@ -31,8 +31,9 @@ class NHDST7565
             W_5_H_8,
             W_6_H_10,
             W_6_H_13_B,
-            W_21_H_33,
-            W_16_H_16_ICON,
+            W_17_H_29,
+            W_8_H_8_ICON,
+            W_16_H_16_WEATHER_ICON,
             MAX_FONTS
         };
 
@@ -43,8 +44,9 @@ class NHDST7565
             u8g2_font_5x8_mr,
             u8g2_font_6x10_mr,
             u8g2_font_6x13B_mr,
-            u8g2_font_inr24_mr,
-            u8g2_font_open_iconic_all_2x_t,
+            u8g2_font_inr19_mr,
+            u8g2_font_open_iconic_all_1x_t,
+            u8g2_font_open_iconic_weather_2x_t,
         };
 	
         NHDST7565();
