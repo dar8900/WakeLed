@@ -7,7 +7,9 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiUdp.h>
 #include <string>
+#include <sstream>
 #include <Chrono.h>
+#include <ctime>
 
 typedef std::string WifiString;
 
@@ -27,8 +29,12 @@ class WIFI_STATION
         bool wifiConnected = false;
         HTTPClient *httpWeatherReq;
         Chrono *weatherTimer;
+        uint32_t epochTimestamp;
         void connectToWifi();
         void getWeatherParameters();
+        uint32_t getTimestamp();
+        WifiString getTimeFormatted();
+        WifiString getDateFormatted();
 
     public:
         typedef struct 
@@ -40,12 +46,19 @@ class WIFI_STATION
             float pressure; // in mbar, dividere per 1000
         }WEATHER_VARS;
         
-        WEATHER_VARS *weatherInfo;
+        typedef struct 
+        {
+            uint32_t timestamp;
+            WifiString timeFormatted;
+            WifiString dateFormatted;
+        }TIME_VARS;
+        
+        
+        WEATHER_VARS weatherInfo;
+        TIME_VARS timeDateInfo;
 
         WIFI_STATION();
         void initWifiStation();
-        uint32_t getTimestamp();
-        WifiString getTimeFormatted();
         void run();
 };
 
