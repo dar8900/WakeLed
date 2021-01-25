@@ -1,0 +1,71 @@
+#include "../headers/alarms.h"
+
+void ALARM::getActualTime(uint32_t GlobalTimestamp)
+{
+    std::tm *locTime = std::localtime((time_t *)&GlobalTimestamp);
+    actualTime.hour = locTime->tm_hour;
+    actualTime.minute = locTime->tm_min;
+}
+
+void ALARM::checkAlarm(uint32_t GlobalTimestamp)
+{
+    if(alarmSetted)
+    {
+        getActualTime(GlobalTimestamp);
+        if(actualTime.hour == alarmTime.hour && actualTime.minute == alarmTime.minute && !alarmActive)
+        {
+            alarmActive = true;
+        }
+        // Inserire un tempo di snooze della sveglia, servono due timer uno per lo snooze e uno per riattivare la sveglia
+    }
+    else
+    {
+        alarmActive = false;
+    }
+    
+}
+
+ALARM::ALARM()
+{
+    checkAlarmTimer = new Chrono(Chrono::MILLIS, false);
+}
+
+bool ALARM::isAlarmActive()
+{
+    return alarmActive;
+}
+
+bool ALARM::isAlarmSet()
+{
+    return alarmSetted;
+}
+
+void ALARM::setAlarm()
+{
+    alarmSetted = true;
+}
+
+void ALARM::resetAlarm()
+{
+    alarmSetted = false;
+}
+
+void ALARM::getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute)
+{
+    AlarmHour = alarmTime.hour;
+    AlarmMinute = alarmTime.minute;
+}
+
+void ALARM::setAlarmTime(uint8_t AlarmHour, uint8_t AlarmMinute)
+{
+    alarmTime.hour = AlarmHour;
+    alarmTime.minute = AlarmMinute;
+}
+
+void ALARM::runAlarm(uint32_t GlobalTimestamp)
+{
+    if(checkAlarmTimer->hasPassed(1000, true))
+    {
+        checkAlarm(GlobalTimestamp);
+    }
+}
