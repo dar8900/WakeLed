@@ -22,7 +22,7 @@ class WIFI_STATION
         const char *PASSWD = "ZGFyaW9zYXJhYmFzZTY0";
         WiFiUDP *ntpUDP;
         NTPClient *timeClient; //(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-        const WifiString NTP_SERVER = "europe.pool.ntp.org";
+        const WifiString NTP_SERVER = "it.pool.ntp.org";//"europe.pool.ntp.org";
         const WifiString BOLOGNA_ID = "3181927";
         const WifiString WEATHER_API_KEY = "ec79bf368720417f78abda66d4e47828";
         WifiString apiWeatherCall;
@@ -31,7 +31,8 @@ class WIFI_STATION
         HTTPClient *httpWeatherReq;
         Chrono *weatherTimer;
         Chrono *takeTimeBackUp;
-        uint32_t epochTimestamp;
+        bool backupTimerStarted = false;
+        uint32_t epochTimestamp = 1609459200;
         bool initWeather = true;
         void connectToWifi();
         void weatherHttpJson();

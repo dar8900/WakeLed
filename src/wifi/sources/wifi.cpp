@@ -55,8 +55,7 @@ void WIFI_STATION::weatherHttpJson()
         weatherInfo.perceivedTemp -= 273.15;
         weatherInfo.pressure = weatherInfoJASON["main"]["pressure"];
         weatherInfo.humidity = weatherInfoJASON["main"]["humidity"];
-        weatherInfo.weatherID = weatherInfoJASON["weather"]["id"];
-        WakeledDebug.writeDebugString(String(weatherInfo.weatherID), "weatherHttpJson", true);
+        weatherInfo.weatherID = weatherInfoJASON["weather"][0]["id"];
         if(weatherInfo.weatherID >= 200 && weatherInfo.weatherID < 300)
         {
             weatherInfo.weatherID = TEMPESTA;
@@ -97,7 +96,7 @@ void WIFI_STATION::getWeatherInfo(bool TakeInfoNow)
 { 
     if(!TakeInfoNow)
     {
-        if(weatherTimer->hasPassed(5, true))
+        if(weatherTimer->hasPassed(300, true))
         {
             weatherHttpJson();
         }
@@ -178,10 +177,15 @@ void WIFI_STATION::run()
         timeDateInfo.dateFormatted = getDateFormatted();
         timeDateInfo.timeFormatted = getTimeFormatted();
         getWeatherInfo(false);
+        backupTimerStarted = false;
     }
     else
     {
-        takeTimeBackUp->restart();
+        if(!backupTimerStarted)
+        {
+            takeTimeBackUp->restart();
+            backupTimerStarted = true;
+        }
         if(takeTimeBackUp->hasPassed(1000, true))
         {
             epochTimestamp++;

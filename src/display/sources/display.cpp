@@ -22,7 +22,7 @@ uint8_t NHDST7565::setTextCenter()
 
 uint8_t NHDST7565::setTextRight()
 {
-	return (DISPLAY_WIDTH - displayText.textWidth - 1); 
+	return (DISPLAY_WIDTH - displayText.textWidth - 5); 
 }
 
 uint8_t NHDST7565::setTextTop()
