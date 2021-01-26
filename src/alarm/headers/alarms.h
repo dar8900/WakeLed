@@ -23,7 +23,12 @@ class ALARM
         ALARM_TIME actualTime;
         bool alarmActive = false;
         bool alarmSetted = false;
+        bool alarmSnoozed = false;
+        uint16_t snoozeTime = 300; // in secondi
+        uint16_t reactiveAlarmTime = 300;
         Chrono *checkAlarmTimer;
+        Chrono *snoozeTimer;
+        Chrono *reactiveAlarmTimer;
         void getActualTime(uint32_t GlobalTimestamp);
         void checkAlarm(uint32_t GlobalTimestamp);
 
@@ -37,6 +42,10 @@ class ALARM
         void resetAlarm();
         void getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute);
         void setAlarmTime(uint8_t AlarmHour, uint8_t AlarmMinute);
+        void setSnoozeTime(uint16_t SnoozeTime = 5);
+        uint16_t getSnoozeTime();
+        void setReactiveAlarmTime(uint16_t ReactiveAlarmTime = 5);
+        uint16_t getReactiveAlarmTime();
         void runAlarm(uint32_t GlobalTimestamp);
 };
 

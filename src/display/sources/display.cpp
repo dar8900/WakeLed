@@ -69,7 +69,7 @@ void NHDST7565::setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPo
 	}
 	else if(OldXPos > DISPLAY_WIDTH && OldYPos <= DISPLAY_HIGH)
 	{
-		NewYPos = OldYPos + displayText.textHigh;;
+		NewYPos = OldYPos + displayText.textHigh;
 		switch(OldXPos)
 		{
 			case LEFT_POS:
@@ -153,6 +153,30 @@ void NHDST7565::clearBuff()
 void NHDST7565::sendBuff()
 {
 	u8g2->sendBuffer();
+}
+
+void NHDST7565::drawLine(uint8_t XStart, uint8_t YStart, uint8_t Len, uint8_t Direction)
+{
+	switch (Direction)
+	{
+	case HORIZONTAL:
+		u8g2->drawHLine(XStart, YStart, Len);
+		break;
+	case VERTICAL:
+		u8g2->drawVLine(XStart, YStart, Len);
+		break;
+	default:
+		break;
+	}
+	
+}
+
+void NHDST7565::drawCircle(uint8_t CenterX, uint8_t CenterY, uint8_t Radius, bool Filled)
+{
+	if(!Filled)
+		u8g2->drawCircle(CenterX, CenterY, Radius);
+	else	
+		u8g2->drawDisc(CenterX, CenterY, Radius);
 }
 
 void NHDST7565::drawUnicodeChar(uint8_t XPos, uint8_t YPos, uint8_t Font, uint16_t CharCode)

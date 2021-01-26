@@ -20,11 +20,14 @@ class WIFI_STATION
     private:
         const char *SSID = "FASTWEB-85B1EA";
         const char *PASSWD = "ZGFyaW9zYXJhYmFzZTY0";
+        // const char *SSID = "DOOM_SLAYER";
+        // const char *PASSWD = "dari9299";
         WiFiUDP *ntpUDP;
         NTPClient *timeClient; //(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
         const WifiString NTP_SERVER = "it.pool.ntp.org";//"europe.pool.ntp.org";
         const WifiString BOLOGNA_ID = "3181927";
         const WifiString WEATHER_API_KEY = "ec79bf368720417f78abda66d4e47828";
+        bool wifiConnected = false;
         WifiString apiWeatherCall;
         uint16_t localHourShift = 3600; // shift di 1h rispetto all'ora di greenwitch
         uint16_t timeRefreshFrq = 30000; // frequenza di rischiesta di orario (in ms)
@@ -73,8 +76,9 @@ class WIFI_STATION
         
         WEATHER_VARS weatherInfo;
         TIME_VARS timeDateInfo;
-        bool wifiConnected = false;
+        
         WIFI_STATION();
+        bool isWifiConnected();
         void initWifiStation();
         void run();
 };

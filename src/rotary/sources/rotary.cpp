@@ -21,7 +21,7 @@ void ROTARY::acqRotaryState()
             while(SwitchState == LOW)
             {
                 SwitchState = digitalRead(D3);
-                if(millis() - LongPressTime > 1500)
+                if(millis() - LongPressTime > 1000)
                 {
                     SwitchState = LONG_BUTTON_PRESS;
                     break;

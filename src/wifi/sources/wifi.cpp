@@ -149,6 +149,11 @@ DispString WIFI_STATION::getDateFormatted()
     return DispString(DateStr.c_str());
 }
 
+bool WIFI_STATION::isWifiConnected()
+{
+    return wifiConnected;
+}
+
 void WIFI_STATION::initWifiStation()
 {
     apiWeatherCall = "http://api.openweathermap.org/data/2.5/weather?id=" + BOLOGNA_ID + "&appid=" + WEATHER_API_KEY;
@@ -193,6 +198,14 @@ void WIFI_STATION::run()
         timeDateInfo.timestamp = getTimestamp(wifiConnected);
         timeDateInfo.dateFormatted = getDateFormatted();
         timeDateInfo.timeFormatted = getTimeFormatted();
+    }
+    if(WiFi.status() != WL_CONNECTED)
+    {
+        wifiConnected = false;
+    }
+    else
+    {
+        wifiConnected = true;
     }
     
 }

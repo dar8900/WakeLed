@@ -37,6 +37,11 @@ class NHDST7565
             MAX_FONTS
         };
 
+        enum
+        {
+            HORIZONTAL = 0,
+            VERTICAL
+        };
 
         const uint8_t *displayFonts[MAX_FONTS] =
         {
@@ -49,10 +54,14 @@ class NHDST7565
             u8g2_font_open_iconic_weather_2x_t,
         };
 	
+        static const uint8_t DISPLAY_WIDTH = 128;
+        static const uint8_t DISPLAY_HIGH = 64;
         NHDST7565();
         void clearDisplay();
         void clearBuff();
         void sendBuff();
+        void drawLine(uint8_t XStart, uint8_t YStart, uint8_t Len, uint8_t Direction);
+        void drawCircle(uint8_t CenterX, uint8_t CenterY, uint8_t Radius, bool Filled);
         void drawUnicodeChar(uint8_t XPos, uint8_t YPos, uint8_t Font, uint16_t CharCode);
         void drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString String);
         void drawPopUp(DispString PopupText, uint16_t Delay);
@@ -71,8 +80,6 @@ class NHDST7565
 
         U8G2_ST7565_NHD_C12864_F_4W_HW_SPI *u8g2;
 
-        static const uint8_t DISPLAY_WIDTH = 128;
-        static const uint8_t DISPLAY_HIGH = 64;
 
         DRAW_TEXT displayText;
         uint8_t setTextLeft();
