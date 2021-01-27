@@ -12,6 +12,11 @@ LEDS::LEDS(uint8_t Pin, uint8_t Mode)
     {
         pinMode(Pin, OUTPUT);
     }
+    else if(pinModality == PWM)
+    {
+        analogWriteRange(PWM_RANGE);
+    }
+    
 
 }
 
@@ -58,4 +63,3 @@ uint16_t LEDS::readAnalog()
     return AnalogVal;
 }
 
-LEDS WakeLed(D1, PWM);

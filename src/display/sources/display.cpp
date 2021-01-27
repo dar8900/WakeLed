@@ -195,6 +195,26 @@ void NHDST7565::drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString 
     u8g2->drawStr(NewXPos, NewYPos, displayText.textString);
 }
 
+void NHDST7565::drawPopUp(DispString PopupText, uint16_t Delay)
+{
+	clearBuff();
+	drawLine(0, 0, DISPLAY_WIDTH, HORIZONTAL);
+	drawLine(0, 1, DISPLAY_WIDTH, HORIZONTAL);
+	drawLine(0, 63, DISPLAY_WIDTH, HORIZONTAL);
+	drawLine(0, 64, DISPLAY_WIDTH, HORIZONTAL);	
+	drawLine(0, 0, DISPLAY_HIGH, VERTICAL);
+	drawLine(1, 0, DISPLAY_HIGH, VERTICAL);
+	drawLine(127, 0, DISPLAY_HIGH, VERTICAL);
+	drawLine(128, 0, DISPLAY_HIGH, VERTICAL);	
+	drawString(CENTER_POS, MIDDLE_POS, W_6_H_13_B, PopupText);
+	sendBuff();
+	if(Delay > 0)
+	{
+		delay(Delay);
+	}
+
+}
+
 void NHDST7565::drawDisplay(void displayRoutine(void))
 {
     u8g2->clearBuffer();

@@ -2,17 +2,82 @@
 
 #define METEO_X_START   92
 
-DispString menuVoices[] = {
+DispString menuVoices[] = 
+{
     "Imposta allarme",
+    "Imposta tempo led",
     "Imposta snooze all.",
     "Imposta riavvio all.",
     "Info meteo",
 };
 
+void WAKE_LED::manageAlarmLed()
+{
+    uint8_t AlarmHour = 0, AlarmMinute = 0, Accension = preAccensionTime / 60;
+    uint8_t ActualHour = 0, ActualMinute = 0;
+    wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
+    if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0)
+    {
+        std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
+        ActualHour = locTime->tm_hour;
+        ActualMinute = locTime->tm_min;
+        uint16_t TimeDiff = 0;
+        if(AlarmMinute - Accension >= 0)
+        {
+            TimeDiff = ((AlarmMinute - ActualMinute) * 60);
+            if(ActualMinute >= (AlarmMinute - Accension) && accensionLedSeconds <= LEDS::PWM_RANGE)
+            {
+                if(preAccensionTimer->hasPassed(1, true))
+                {
+                    alarmLed->writePwm(accensionLedSeconds);
+                    accensionLedSeconds += (LEDS::PWM_RANGE / preAccensionTime);
+                }
+            }
+            if(accensionLedSeconds > TimeDiff)
+            {
+                preAccensionTimer->stop();
+            }
+        }
+        else
+        {
+            uint16_t TimeToZero = Accension - AlarmMinute;
+            if(ActualMinute > AlarmMinute)
+            {
+                TimeDiff = (59 - ActualMinute) * 60;
+            }
+            else
+            {
+                TimeDiff = (AlarmMinute - ActualMinute) * 60;
+            }
+            if((ActualMinute > (59 - TimeToZero) || ActualMinute <= AlarmMinute) && accensionLedSeconds <= LEDS::PWM_RANGE)
+            {                
+                if(preAccensionTimer->hasPassed(1, true))
+                {
+                    alarmLed->writePwm(accensionLedSeconds);
+                    accensionLedSeconds += (LEDS::PWM_RANGE / preAccensionTime);
+                }
+                if(accensionLedSeconds > TimeDiff)
+                {
+                    preAccensionTimer->stop();
+                }
+            }
+        }
+        
+    }
+    else
+    {
+        preAccensionTimer->restart();
+        ledDutyCycle = 0;
+        alarmLed->writePwm(ledDutyCycle);
+        accensionLedSeconds = 0;
+    }
+}
+
 void WAKE_LED::backGroundTasks()
 {
     wifiStation->run();
     wakeLedAlarm->runAlarm(wifiStation->timeDateInfo.timestamp);
+    manageAlarmLed();
 }
 
 void WAKE_LED::drawTopInfo()
@@ -107,7 +172,44 @@ void WAKE_LED::mainScreen()
         case ROTARY::INCREMENT:
             break;
         case ROTARY::BUTTON_PRESS:
+            wakeScreen = MENU_SCREEN;
             ExitMainScreen = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            wakeLedAlarm->resetAlarm();
+            break;
+        default:
+            break;
+        }
+        if(wakeLedAlarm->isAlarmActive())
+        {
+            ExitMainScreen = true;
+            wakeScreen = ALARM_ACTIVE_SCREEN;
+        }
+        delay(1);
+    }
+}
+
+void WAKE_LED::alarmActiveScreen()
+{
+    bool ExitAlarmActive = false;
+    int8_t Button = ROTARY::NO_ACTION;
+    while(!ExitAlarmActive)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, "SVEGLIA");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+        case ROTARY::INCREMENT:
+            break;
+        case ROTARY::BUTTON_PRESS:
+            wakeLedAlarm->resetAlarm();
+            ExitAlarmActive = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
             break;
@@ -115,9 +217,8 @@ void WAKE_LED::mainScreen()
             break;
         }
         delay(1);
-    }
+    }   
 }
-
 
 void WAKE_LED::menu()
 {
@@ -132,7 +233,7 @@ void WAKE_LED::menu()
         for(int MenuItem = 0; MenuItem < MaxItemList; MenuItem++)
         {
             uint8_t NextItem = TopItem + MenuItem;
-            if(NextItem >= MAX_SCREEN - 2)
+            if(NextItem >= MAX_SCREEN - 3)
                 break;
             display->drawString(8, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, menuVoices[NextItem]); 
             if(NextItem == ItemSel)
@@ -149,15 +250,16 @@ void WAKE_LED::menu()
             if(ItemSel > 0)
                 ItemSel--;
             else
-                ItemSel = (MAX_SCREEN - 2) - 1;
+                ItemSel = (MAX_SCREEN - 3) - 1;
             break;
         case ROTARY::INCREMENT:
-            if(ItemSel < (MAX_SCREEN - 2) - 1)
+            if(ItemSel < (MAX_SCREEN - 3) - 1)
                 ItemSel++;
             else
                 ItemSel = 0;        
             break;
         case ROTARY::BUTTON_PRESS:
+            wakeScreen = ItemSel + ALARM_SCREEN;
             ExitMenu = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
@@ -167,9 +269,9 @@ void WAKE_LED::menu()
         default:
             break;
         }
-        if(ItemSel > MaxItemList)
+        if(ItemSel > MaxItemList - 1)
         {
-            TopItem = ItemSel - MaxItemList;
+            TopItem = ItemSel - MaxItemList - 1;
         }
         else
         {
@@ -180,6 +282,233 @@ void WAKE_LED::menu()
     }
 }
 
+void WAKE_LED::alarmScreen()
+{
+    bool ExitSetAlarm = false;
+    bool SetHour = true;
+    uint8_t AlarmHour = 0, AlarmiMinute = 0, Button = ROTARY::NO_ACTION;
+    wakeLedAlarm->getAlarmTime(AlarmHour, AlarmiMinute);
+    while(!ExitSetAlarm)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(SetHour)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(AlarmHour).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Ora di allarme");
+        }
+        else
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(AlarmiMinute).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Minuto di allarme");
+        }
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(SetHour)
+            {
+                if(AlarmHour > 0)
+                    AlarmHour--;
+                else
+                    AlarmHour = 23;
+            }
+            else
+            {
+                if(AlarmiMinute > 0)
+                    AlarmiMinute--;
+                else
+                    AlarmiMinute = 59;
+            }
+            break;
+        case ROTARY::INCREMENT:
+            if(SetHour)
+            {
+                if(AlarmHour < 23)
+                    AlarmHour++;
+                else
+                    AlarmHour = 23;
+            }
+            else
+            {
+                if(AlarmiMinute < 59)
+                    AlarmiMinute++;
+                else
+                    AlarmiMinute = 0;
+            }
+            break;
+        case ROTARY::BUTTON_PRESS:
+            if(SetHour)
+            {
+                SetHour = false;
+            }
+            else
+            {
+                wakeLedAlarm->setAlarmTime(AlarmHour, AlarmiMinute);
+                wakeLedAlarm->setAlarm();
+                display->drawPopUp("Allarme impostato", 1500);
+                ExitSetAlarm = true;
+            }
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            if(SetHour)
+            {
+                ExitSetAlarm = true;
+            }
+            else
+            {
+                SetHour = true;
+            }
+            break;
+        default:
+            break;
+        }
+        delay(1);
+    }
+}
+
+void WAKE_LED::preLedAccension()
+{
+    bool ExitPreAccensionSet = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t Accension = preAccensionTime / 60;
+    while(!ExitPreAccensionSet)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(Accension == 0)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Disabilitato");
+        }
+        else
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Accension).c_str()));
+        }
+        display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta accensione (min)");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(Accension > 0)
+                Accension--;
+            else
+                Accension = 30;
+            break;
+        case ROTARY::INCREMENT:
+            if(Accension < 30)
+                Accension++;
+            else
+                Accension = 0;
+            break;
+        case ROTARY::BUTTON_PRESS:
+            display->drawPopUp("Accensione impostata", 1500);
+            preAccensionTime = Accension * 60;
+            ExitPreAccensionSet = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitPreAccensionSet = true;
+            break;
+        default:
+            break;
+        }
+        delay(1);
+    }
+}
+
+void WAKE_LED::snoozeTime()
+{
+    bool ExitSnoozeSet = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t SnoozeTime = wakeLedAlarm->getSnoozeTime();
+    while(!ExitSnoozeSet)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(SnoozeTime).c_str()));
+        display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta snooze(min)");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(SnoozeTime > 1)
+                SnoozeTime--;
+            else
+                SnoozeTime = 30;
+            break;
+        case ROTARY::INCREMENT:
+            if(SnoozeTime < 30)
+                SnoozeTime++;
+            else
+                SnoozeTime = 1;
+            break;
+        case ROTARY::BUTTON_PRESS:
+            wakeLedAlarm->setSnoozeTime(SnoozeTime);
+            display->drawPopUp("Snooze impostato", 1500);
+            ExitSnoozeSet = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitSnoozeSet = true;
+            break;
+        default:
+            break;
+        }
+        delay(1);
+    }
+}
+
+void WAKE_LED::reactiveAlarmTime()
+{
+    bool ExitReactiveAlarmSet = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t ReactiveAlarmTime = wakeLedAlarm->getReactiveAlarmTime();
+    while(!ExitReactiveAlarmSet)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(ReactiveAlarmTime).c_str()));
+        display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Riattiva allarme (min)");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(ReactiveAlarmTime > 1)
+                ReactiveAlarmTime--;
+            else
+                ReactiveAlarmTime = 30;
+            break;
+        case ROTARY::INCREMENT:
+            if(ReactiveAlarmTime < 30)
+                ReactiveAlarmTime++;
+            else
+                ReactiveAlarmTime = 1;
+            break;
+        case ROTARY::BUTTON_PRESS:
+            wakeLedAlarm->setReactiveAlarmTime(ReactiveAlarmTime);
+            display->drawPopUp("Riattivo impostato", 1500);
+            ExitReactiveAlarmSet = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitReactiveAlarmSet = true;
+            break;
+        default:
+            break;
+        }
+        delay(1);
+    }   
+}
+
+void WAKE_LED::meteoInfo()
+{
+    
+}
 
 WAKE_LED::WAKE_LED()
 {
@@ -187,15 +516,14 @@ WAKE_LED::WAKE_LED()
     rotary = new ROTARY();
     wifiStation = new WIFI_STATION();
     wakeLedAlarm = new ALARM();
+    alarmLed = new LEDS(D1, LEDS::PWM);
+    preAccensionTimer = new Chrono(Chrono::SECONDS, false);
 }
 
 
 void WAKE_LED::init()
 {
-    display->clearBuff();
-    display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Home Microtech");
-    display->sendBuff();
-    delay(1500);
+    display->drawPopUp("Home Microtech", 1500);
     display->clearBuff();
     display->drawString(NHDST7565::CENTER_POS, NHDST7565::TOP_POS, NHDST7565::W_6_H_13_B, "Collegamento");
     display->drawString(NHDST7565::CENTER_POS, 15, NHDST7565::W_6_H_13_B, "al wifi...");
@@ -227,27 +555,34 @@ void WAKE_LED::run()
     {
     case MAIN_SCREEN:
         mainScreen();
-        wakeScreen = MENU_SCREEN;
         break;
     case MENU_SCREEN:
         menu();
         break;
     case ALARM_SCREEN:
-        // alarmScreen();
+        alarmScreen();
         wakeScreen = MENU_SCREEN;
         break;
+    case PRE_ACCENSION_SCREEN:
+        preLedAccension();
+        wakeScreen = MENU_SCREEN;
+        break;        
     case SNOOZE_TIME_SCREEN:
-        // snoozeTime();
+        snoozeTime();
         wakeScreen = MENU_SCREEN;
         break;
     case REACTIVE_ALARM_SCREEN:
-        // reactiveAlarmTime();
+        reactiveAlarmTime();
         wakeScreen = MENU_SCREEN;
         break;
     case METEO_INFO_SCREEN:
         // meteoInfo();
         wakeScreen = MENU_SCREEN;
         break;
+    case ALARM_ACTIVE_SCREEN:
+        alarmActiveScreen();
+        wakeScreen = MAIN_SCREEN;
+        break;        
     default:
         break;
     }
