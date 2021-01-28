@@ -38,6 +38,7 @@ void ALARM::checkAlarm(uint32_t GlobalTimestamp)
     else
     {
         alarmActive = false;
+        alarmSnoozed = false;
         snoozeTimer->stop();
         reactiveAlarmTimer->stop();
     }
@@ -63,11 +64,13 @@ bool ALARM::isAlarmSet()
 
 void ALARM::setAlarm()
 {
+    checkAlarmTimer.restart();
     alarmSetted = true;
 }
 
 void ALARM::resetAlarm()
 {
+    checkAlarmTimer.stop();
     alarmSetted = false;
 }
 

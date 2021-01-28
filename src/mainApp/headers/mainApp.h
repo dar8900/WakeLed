@@ -33,7 +33,7 @@ class WAKE_LED
         Chrono *preAccensionTimer;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 300; // In secondi
-        uint16_t accensionLedSeconds = 0;
+        uint16_t accensionLedPwmIncrement = 0;
         uint16_t ledDutyCycle = 0;
         
         void manageAlarmLed();

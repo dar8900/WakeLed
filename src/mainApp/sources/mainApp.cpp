@@ -13,7 +13,7 @@ DispString menuVoices[] =
 
 void WAKE_LED::manageAlarmLed()
 {
-    uint8_t AlarmHour = 0, AlarmMinute = 0, Accension = preAccensionTime / 60;
+    uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime / 60;
     uint8_t ActualHour = 0, ActualMinute = 0;
     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
     if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0)
@@ -22,45 +22,29 @@ void WAKE_LED::manageAlarmLed()
         ActualHour = locTime->tm_hour;
         ActualMinute = locTime->tm_min;
         uint16_t TimeDiff = 0;
-        if(AlarmMinute - Accension >= 0)
+        if(AlarmMinute - PreAccensionMinute >= 0)
         {
-            TimeDiff = ((AlarmMinute - ActualMinute) * 60);
-            if(ActualMinute >= (AlarmMinute - Accension) && accensionLedSeconds <= LEDS::PWM_RANGE)
+            if(ActualMinute >= (AlarmMinute - PreAccensionMinute))
             {
                 if(preAccensionTimer->hasPassed(1, true))
                 {
-                    alarmLed->writePwm(accensionLedSeconds);
-                    accensionLedSeconds += (LEDS::PWM_RANGE / preAccensionTime);
+                    alarmLed->writePwm(accensionLedPwmIncrement);
+                    accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
                 }
-            }
-            if(accensionLedSeconds > TimeDiff)
-            {
-                preAccensionTimer->stop();
             }
         }
         else
         {
-            uint16_t TimeToZero = Accension - AlarmMinute;
-            if(ActualMinute > AlarmMinute)
+            uint16_t TimeToMidNite = PreAccensionMinute - AlarmMinute;
+            if(ActualMinute >= (60 - TimeToMidNite) || ActualMinute <= AlarmMinute)
             {
-                TimeDiff = (59 - ActualMinute) * 60;
-            }
-            else
-            {
-                TimeDiff = (AlarmMinute - ActualMinute) * 60;
-            }
-            if((ActualMinute > (59 - TimeToZero) || ActualMinute <= AlarmMinute) && accensionLedSeconds <= LEDS::PWM_RANGE)
-            {                
                 if(preAccensionTimer->hasPassed(1, true))
                 {
-                    alarmLed->writePwm(accensionLedSeconds);
-                    accensionLedSeconds += (LEDS::PWM_RANGE / preAccensionTime);
-                }
-                if(accensionLedSeconds > TimeDiff)
-                {
-                    preAccensionTimer->stop();
+                    alarmLed->writePwm(accensionLedPwmIncrement);
+                    accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
                 }
             }
+
         }
         
     }
@@ -69,7 +53,7 @@ void WAKE_LED::manageAlarmLed()
         preAccensionTimer->restart();
         ledDutyCycle = 0;
         alarmLed->writePwm(ledDutyCycle);
-        accensionLedSeconds = 0;
+        accensionLedPwmIncrement = 0;
     }
 }
 
@@ -225,7 +209,7 @@ void WAKE_LED::menu()
     bool ExitMenu = false;
     int8_t Button = ROTARY::NO_ACTION;
     uint8_t ItemSel = 0, TopItem = 0;
-    const uint8 MaxItemList = 4;
+    const uint8 MaxItemList = 3;
     while(!ExitMenu)
     {
         display->clearBuff();
