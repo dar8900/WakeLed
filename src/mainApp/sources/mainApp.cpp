@@ -2,6 +2,10 @@
 
 #define METEO_X_START   92
 
+#define MAX_MENU_VOICES 5
+
+#define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
+
 DispString menuVoices[] = 
 {
     "Imposta allarme",
@@ -16,21 +20,18 @@ void WAKE_LED::manageAlarmLed()
     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime / 60;
     uint8_t ActualHour = 0, ActualMinute = 0;
     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
-    if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0)
+    if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0 && !wakeLedAlarm->isAlarmSnoozed())
     {
         std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
         ActualHour = locTime->tm_hour;
         ActualMinute = locTime->tm_min;
         uint16_t TimeDiff = 0;
+        bool TurnOnLed = false;
         if(AlarmMinute - PreAccensionMinute >= 0)
         {
             if(ActualMinute >= (AlarmMinute - PreAccensionMinute))
             {
-                if(preAccensionTimer->hasPassed(1, true))
-                {
-                    alarmLed->writePwm(accensionLedPwmIncrement);
-                    accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
-                }
+                TurnOnLed = true;
             }
         }
         else
@@ -38,15 +39,22 @@ void WAKE_LED::manageAlarmLed()
             uint16_t TimeToMidNite = PreAccensionMinute - AlarmMinute;
             if(ActualMinute >= (60 - TimeToMidNite) || ActualMinute <= AlarmMinute)
             {
-                if(preAccensionTimer->hasPassed(1, true))
-                {
-                    alarmLed->writePwm(accensionLedPwmIncrement);
-                    accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
-                }
+                TurnOnLed = true;
             }
 
         }
-        
+        if(TurnOnLed)
+        {
+            if(preAccensionTimer->hasPassed(1, true))
+            {
+                alarmLed->writePwm(accensionLedPwmIncrement);
+                accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
+            }
+        }
+        else
+        {
+            alarmLed->writePwm(0);
+        }        
     }
     else
     {
@@ -134,16 +142,57 @@ void WAKE_LED::drawWeatherInfo()
     
 }
 
+void WAKE_LED::drawAnalogClock()
+{
+    float Meno90 = (float)TO_RADIANTS(90.0);
+    const uint8_t CLOCK_X_CENTER =  43;
+    const uint8_t CLOCK_Y_CENTER = 34;
+    const uint8_t CLOCK_RADIUS = 25;
+    uint8_t ActualHour = 0, ActualMinute = 0, ActualSeconds = 0;
+    std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
+    ActualHour = locTime->tm_hour;
+    ActualMinute = locTime->tm_min;
+    ActualSeconds = wifiStation->timeDateInfo.timestamp % 60;
+    int16_t XPosHour =   (int16_t) (CLOCK_RADIUS - 10) * cos((double)TO_RADIANTS(30 * (ActualHour % 12))- Meno90);
+    int16_t YPosHour =   (int16_t) (CLOCK_RADIUS - 10) * sin((double)TO_RADIANTS(30 * (ActualHour % 12))- Meno90); 
+    int16_t XPosMinute = (int16_t) (CLOCK_RADIUS - 4) * cos((double)TO_RADIANTS(6 * ActualMinute ) - Meno90);
+    int16_t YPosMinute = (int16_t) (CLOCK_RADIUS - 4) * sin((double)TO_RADIANTS(6 * ActualMinute ) - Meno90);
+    int16_t XPosSecond = (int16_t) (CLOCK_RADIUS - 2) * cos((double)TO_RADIANTS(6 * ActualSeconds ) - Meno90);
+    int16_t YPosSecond = (int16_t) (CLOCK_RADIUS - 2) * sin((double)TO_RADIANTS(6 * ActualSeconds ) - Meno90);
+    display->drawCircle(CLOCK_X_CENTER, CLOCK_Y_CENTER, CLOCK_RADIUS, false);
+    display->drawCircle(CLOCK_X_CENTER, CLOCK_Y_CENTER, 2, false);
+
+    // ORE
+    display->drawAngleLine(CLOCK_X_CENTER, CLOCK_Y_CENTER, CLOCK_X_CENTER + XPosHour,   CLOCK_Y_CENTER + YPosHour);
+            
+    // MINUTI
+    display->drawAngleLine(CLOCK_X_CENTER, CLOCK_Y_CENTER, CLOCK_X_CENTER + XPosMinute, CLOCK_Y_CENTER + YPosMinute);
+            
+    // SECONDI  
+    display->drawAngleLine(CLOCK_X_CENTER, CLOCK_Y_CENTER, CLOCK_X_CENTER + XPosSecond, CLOCK_Y_CENTER + YPosSecond); 
+}
+
 void WAKE_LED::mainScreen()
 {   
     bool ExitMainScreen = false;
     int8_t Button = ROTARY::NO_ACTION;
+    String Seconds = "";
+    bool SwitchClockView = false;
     while(!ExitMainScreen)
     {
+        Seconds = wifiStation->timeDateInfo.timestamp % 60 < 10 ? "0" + String(wifiStation->timeDateInfo.timestamp % 60) : String(wifiStation->timeDateInfo.timestamp % 60);
         display->clearBuff();
         drawTopInfo();
-        display->drawString(NHDST7565::LEFT_POS, 14, NHDST7565::W_17_H_29, wifiStation->timeDateInfo.timeFormatted);
-        display->drawString(NHDST7565::LEFT_POS, 46, NHDST7565::W_6_H_10, wifiStation->timeDateInfo.dateFormatted);
+        if(!SwitchClockView)
+        {
+            display->drawString(NHDST7565::LEFT_POS, 14, NHDST7565::W_17_H_29, wifiStation->timeDateInfo.timeFormatted);
+            display->drawString(37, 40, NHDST7565::W_5_H_8, DispString(Seconds.c_str()));
+            display->drawString(19, 52, NHDST7565::W_6_H_10, wifiStation->timeDateInfo.dateFormatted);
+        }
+        else
+        {
+            drawAnalogClock();
+        }
         drawWeatherInfo();
         display->drawLine(86, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
         display->drawLine(88, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
@@ -154,6 +203,7 @@ void WAKE_LED::mainScreen()
         {
         case ROTARY::DECREMENT:
         case ROTARY::INCREMENT:
+            SwitchClockView = !SwitchClockView;
             break;
         case ROTARY::BUTTON_PRESS:
             wakeScreen = MENU_SCREEN;
@@ -194,11 +244,17 @@ void WAKE_LED::alarmActiveScreen()
         case ROTARY::BUTTON_PRESS:
             wakeLedAlarm->resetAlarm();
             ExitAlarmActive = true;
+            wakeScreen = MAIN_SCREEN;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
             break;
         default:
             break;
+        }
+        if(!wakeLedAlarm->isAlarmActive())
+        {
+            ExitAlarmActive = true;
+            wakeScreen = MAIN_SCREEN;
         }
         delay(1);
     }   
@@ -208,8 +264,8 @@ void WAKE_LED::menu()
 {
     bool ExitMenu = false;
     int8_t Button = ROTARY::NO_ACTION;
-    uint8_t ItemSel = 0, TopItem = 0;
-    const uint8 MaxItemList = 3;
+    uint8_t ItemSel = oldMenuItem, TopItem = 0;
+    const uint8 MaxItemList = 4;
     while(!ExitMenu)
     {
         display->clearBuff();
@@ -217,7 +273,7 @@ void WAKE_LED::menu()
         for(int MenuItem = 0; MenuItem < MaxItemList; MenuItem++)
         {
             uint8_t NextItem = TopItem + MenuItem;
-            if(NextItem >= MAX_SCREEN - 3)
+            if(NextItem >= MAX_MENU_VOICES)
                 break;
             display->drawString(8, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, menuVoices[NextItem]); 
             if(NextItem == ItemSel)
@@ -234,28 +290,30 @@ void WAKE_LED::menu()
             if(ItemSel > 0)
                 ItemSel--;
             else
-                ItemSel = (MAX_SCREEN - 3) - 1;
+                ItemSel = MAX_MENU_VOICES - 1;
             break;
         case ROTARY::INCREMENT:
-            if(ItemSel < (MAX_SCREEN - 3) - 1)
+            if(ItemSel < MAX_MENU_VOICES - 1)
                 ItemSel++;
             else
                 ItemSel = 0;        
             break;
         case ROTARY::BUTTON_PRESS:
             wakeScreen = ItemSel + ALARM_SCREEN;
+            oldMenuItem = ItemSel;
             ExitMenu = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
             ExitMenu = true;
+            oldMenuItem = 0;
             wakeScreen = MAIN_SCREEN;
             break;
         default:
             break;
         }
-        if(ItemSel > MaxItemList - 1)
+        if(ItemSel >= MaxItemList - 1)
         {
-            TopItem = ItemSel - MaxItemList - 1;
+            TopItem = ItemSel - (MaxItemList - 1);
         }
         else
         {
@@ -491,7 +549,41 @@ void WAKE_LED::reactiveAlarmTime()
 
 void WAKE_LED::meteoInfo()
 {
-    
+    bool ExitMeteoInfo = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    while(!ExitMeteoInfo)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        display->drawString(NHDST7565::LEFT_POS, 10, NHDST7565::W_5_H_8, "Temperatura");
+        display->drawString(NHDST7565::LEFT_POS, 22, NHDST7565::W_6_H_13_B, DispString(String(wifiStation->weatherInfo.temperature, 1).c_str()) + " C");
+        display->drawString(NHDST7565::LEFT_POS, 38, NHDST7565::W_3_H_6, "Percepita");
+        display->drawString(NHDST7565::LEFT_POS, 50, NHDST7565::W_6_H_13_B, DispString(String(wifiStation->weatherInfo.perceivedTemp, 1).c_str()) + " C");     
+        display->drawString(NHDST7565::RIGHT_POS, 10, NHDST7565::W_5_H_8, "Umidita");
+        display->drawString(NHDST7565::RIGHT_POS, 22, NHDST7565::W_6_H_13_B, DispString(String(wifiStation->weatherInfo.humidity).c_str()) + " %");
+        display->drawString(NHDST7565::RIGHT_POS, 38, NHDST7565::W_3_H_6, "Pressione(mbar)");
+        display->drawString(NHDST7565::RIGHT_POS, 50, NHDST7565::W_6_H_13_B, DispString(String(wifiStation->weatherInfo.pressure, 0).c_str()));    
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+
+            break;
+        case ROTARY::INCREMENT:
+
+            break;
+        case ROTARY::BUTTON_PRESS:
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitMeteoInfo = true;
+            break;
+        default:
+            break;
+        }
+        delay(1);
+    }  
 }
 
 WAKE_LED::WAKE_LED()
@@ -560,12 +652,11 @@ void WAKE_LED::run()
         wakeScreen = MENU_SCREEN;
         break;
     case METEO_INFO_SCREEN:
-        // meteoInfo();
+        meteoInfo();
         wakeScreen = MENU_SCREEN;
         break;
     case ALARM_ACTIVE_SCREEN:
         alarmActiveScreen();
-        wakeScreen = MAIN_SCREEN;
         break;        
     default:
         break;

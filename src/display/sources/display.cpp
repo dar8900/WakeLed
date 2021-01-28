@@ -171,6 +171,11 @@ void NHDST7565::drawLine(uint8_t XStart, uint8_t YStart, uint8_t Len, uint8_t Di
 	
 }
 
+void NHDST7565::drawAngleLine(uint8_t XStart, uint8_t YStart, uint8_t XEnd, uint8_t YEnd)
+{
+	u8g2->drawLine(XStart, YStart, XEnd, YEnd);
+}
+
 void NHDST7565::drawCircle(uint8_t CenterX, uint8_t CenterY, uint8_t Radius, bool Filled)
 {
 	if(!Filled)

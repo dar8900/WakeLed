@@ -61,6 +61,7 @@ class NHDST7565
         void clearBuff();
         void sendBuff();
         void drawLine(uint8_t XStart, uint8_t YStart, uint8_t Len, uint8_t Direction);
+        void drawAngleLine(uint8_t XStart, uint8_t YStart, uint8_t XEnd, uint8_t YEnd);
         void drawCircle(uint8_t CenterX, uint8_t CenterY, uint8_t Radius, bool Filled);
         void drawUnicodeChar(uint8_t XPos, uint8_t YPos, uint8_t Font, uint16_t CharCode);
         void drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString String);

@@ -5,6 +5,7 @@
 #include "../../wifi/headers/wifi.h"
 #include <Chrono.h>
 #include <ctime>
+#include "../../debug/headers/debug.h"
 
 typedef struct 
 {
@@ -38,6 +39,7 @@ class ALARM
         ALARM();
         bool isAlarmActive();
         bool isAlarmSet();
+        bool isAlarmSnoozed();
         void setAlarm();
         void resetAlarm();
         void getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute);

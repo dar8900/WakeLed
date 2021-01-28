@@ -33,6 +33,7 @@ void ALARM::checkAlarm(uint32_t GlobalTimestamp)
             alarmSnoozed = false;
             alarmActive = true;
             reactiveAlarmTimer->stop();
+            snoozeTimer->restart();
         }
     }
     else
@@ -62,15 +63,20 @@ bool ALARM::isAlarmSet()
     return alarmSetted;
 }
 
+bool ALARM::isAlarmSnoozed()
+{
+    return alarmSnoozed;
+}
+
 void ALARM::setAlarm()
 {
-    checkAlarmTimer.restart();
+    checkAlarmTimer->restart();
     alarmSetted = true;
 }
 
 void ALARM::resetAlarm()
 {
-    checkAlarmTimer.stop();
+    checkAlarmTimer->stop();
     alarmSetted = false;
 }
 
