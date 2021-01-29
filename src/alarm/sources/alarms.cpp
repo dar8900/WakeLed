@@ -48,7 +48,7 @@ void ALARM::checkAlarm(uint32_t GlobalTimestamp)
 
 ALARM::ALARM()
 {
-    checkAlarmTimer = new Chrono(Chrono::MILLIS, false);
+    checkAlarmTimer = new Chrono(Chrono::MILLIS, true);
     snoozeTimer = new Chrono(Chrono::SECONDS, false);
     reactiveAlarmTimer = new Chrono(Chrono::SECONDS, false);
 }
@@ -70,13 +70,11 @@ bool ALARM::isAlarmSnoozed()
 
 void ALARM::setAlarm()
 {
-    checkAlarmTimer->restart();
     alarmSetted = true;
 }
 
 void ALARM::resetAlarm()
 {
-    checkAlarmTimer->stop();
     alarmSetted = false;
 }
 
@@ -115,7 +113,7 @@ uint16_t ALARM::getReactiveAlarmTime()
 
 void ALARM::runAlarm(uint32_t GlobalTimestamp)
 {
-    if(checkAlarmTimer->hasPassed(1000, true))
+    if(checkAlarmTimer->hasPassed(500, true))
     {
         checkAlarm(GlobalTimestamp);
     }

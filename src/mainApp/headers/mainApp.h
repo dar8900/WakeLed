@@ -7,6 +7,7 @@
 #include "../../wifi/headers/wifi.h"
 #include "../../alarm/headers/alarms.h"
 #include "../../led/headers/led.h"
+#include "../../version.h"
 // #include "../../eeprom/headers/eeprom_esp.h"
 
 class WAKE_LED
@@ -21,6 +22,7 @@ class WAKE_LED
             PRE_ACCENSION_SCREEN,
             SNOOZE_TIME_SCREEN,
             REACTIVE_ALARM_SCREEN,
+            BACKLIGHT_TIME_SCREEN,
             METEO_INFO_SCREEN,
             MAX_SCREEN
         };
@@ -50,6 +52,7 @@ class WAKE_LED
         void preLedAccension();
         void snoozeTime();
         void reactiveAlarmTime();
+        void backlightTime();
         void meteoInfo();
 
     public:

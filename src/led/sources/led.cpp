@@ -33,6 +33,7 @@ void LEDS::writeDigital(bool Status)
     if(pinModality == DIGITAL_OUT)
     {
         digitalWrite(pinNumber, Status == ON ? HIGH : LOW);
+        digitalOutStatus = Status;
     }
 }
 
@@ -51,6 +52,11 @@ bool LEDS::readDigital()
         }
     }
     return DigitalStatus;
+}
+
+bool LEDS::getDigitalOutStatus()
+{
+    return digitalOutStatus;
 }
 
 uint16_t LEDS::readAnalog()

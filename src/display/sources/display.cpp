@@ -7,6 +7,8 @@ NHDST7565::NHDST7565()
 {
     u8g2 = new U8G2_ST7565_NHD_C12864_F_4W_HW_SPI(U8G2_R0, /* cs=*/ D8, /* dc=*/ 9, /* reset=*/ 10);
     u8g2->begin();
+	displayLed = new LEDS(D6, LEDS::DIGITAL_OUT);
+	displayLedTurnoffTimer = new Chrono(Chrono::SECONDS, false);
 }
 
 
@@ -227,3 +229,59 @@ void NHDST7565::drawDisplay(void displayRoutine(void))
     u8g2->sendBuffer();
 }
 
+uint16_t NHDST7565::getDisplayLedTurnoffTime()
+{
+	return displayLedTurnoffTime;
+}
+
+void NHDST7565::setDisplayLedTurnoffTime(uint16_t TurnoffTime)
+{
+	displayLedTurnoffTime = TurnoffTime;
+	restartDisplayLedTimer();
+}
+
+void NHDST7565::restartDisplayLedTimer()
+{
+	displayLedTurnoffTimer->restart();
+}
+
+void NHDST7565::displayLedManage()
+{
+	if(!manualManageDisplayLed)
+	{
+		if(displayLedTurnoffTimer->hasPassed(displayLedTurnoffTime))
+		{
+			if(displayLed->getDigitalOutStatus() == ON)
+			{
+				displayLed->writeDigital(OFF);
+			}
+		}
+		else
+		{
+			if(displayLed->getDigitalOutStatus() == OFF)
+			{
+				displayLed->writeDigital(ON);
+			}
+		}
+	}
+	else
+	{
+		displayLedTurnoffTimer->stop();
+	}
+	
+}
+
+void NHDST7565::manualSwitchLedDisplay(bool Status)
+{
+	if(manualManageDisplayLed)
+	{
+		if(Status == ON)
+		{
+			displayLed->writeDigital(ON);
+		}
+		else
+		{
+			displayLed->writeDigital(OFF);
+		}
+	}
+}

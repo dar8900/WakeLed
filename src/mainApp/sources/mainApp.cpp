@@ -2,16 +2,17 @@
 
 #define METEO_X_START   92
 
-#define MAX_MENU_VOICES 5
+#define MAX_MENU_VOICES 6
 
 #define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
 
-DispString menuVoices[] = 
+DispString menuVoices[MAX_MENU_VOICES] = 
 {
     "Imposta allarme",
     "Imposta tempo led",
     "Imposta snooze all.",
     "Imposta riavvio all.",
+    "Tempo backlight",
     "Info meteo",
 };
 
@@ -70,18 +71,23 @@ void WAKE_LED::backGroundTasks()
     wifiStation->run();
     wakeLedAlarm->runAlarm(wifiStation->timeDateInfo.timestamp);
     manageAlarmLed();
+    display->displayLedManage();
 }
 
 void WAKE_LED::drawTopInfo()
 {
     if(wifiStation->isWifiConnected())
     {
-        display->drawUnicodeChar(NHDST7565::LEFT_POS, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 248);
+        display->drawUnicodeChar(NHDST7565::LEFT_POS, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 247);
     }
     if(wakeLedAlarm->isAlarmSet())
     {
         display->drawUnicodeChar(12, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 93);
     }
+    if(wakeLedAlarm->isAlarmActive())
+    {
+        display->drawUnicodeChar(22, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 84);
+    }    
     if(wakeScreen != MAIN_SCREEN)
     {
         display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, wifiStation->timeDateInfo.timeFormatted);
@@ -193,6 +199,7 @@ void WAKE_LED::mainScreen()
         {
             drawAnalogClock();
         }
+        display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "v" + DispString(VERSION));
         drawWeatherInfo();
         display->drawLine(86, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
         display->drawLine(88, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
@@ -215,6 +222,10 @@ void WAKE_LED::mainScreen()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }
         if(wakeLedAlarm->isAlarmActive())
         {
             ExitMainScreen = true;
@@ -228,6 +239,7 @@ void WAKE_LED::alarmActiveScreen()
 {
     bool ExitAlarmActive = false;
     int8_t Button = ROTARY::NO_ACTION;
+    display->manualManageDisplayLed = true;
     while(!ExitAlarmActive)
     {
         display->clearBuff();
@@ -251,10 +263,14 @@ void WAKE_LED::alarmActiveScreen()
         default:
             break;
         }
+        display->manualSwitchLedDisplay(ON);
         if(!wakeLedAlarm->isAlarmActive())
         {
             ExitAlarmActive = true;
             wakeScreen = MAIN_SCREEN;
+            display->manualSwitchLedDisplay(OFF);
+            display->manualManageDisplayLed = false;
+            display->restartDisplayLedTimer();
         }
         delay(1);
     }   
@@ -307,6 +323,7 @@ void WAKE_LED::menu()
             ExitMenu = true;
             oldMenuItem = 0;
             wakeScreen = MAIN_SCREEN;
+            oldMenuItem = 0;
             break;
         default:
             break;
@@ -319,7 +336,10 @@ void WAKE_LED::menu()
         {
             TopItem = 0;
         }
-        
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }
         delay(1);
     }
 }
@@ -407,6 +427,10 @@ void WAKE_LED::alarmScreen()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }
         delay(1);
     }
 }
@@ -457,6 +481,10 @@ void WAKE_LED::preLedAccension()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }
         delay(1);
     }
 }
@@ -500,6 +528,10 @@ void WAKE_LED::snoozeTime()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }        
         delay(1);
     }
 }
@@ -543,6 +575,10 @@ void WAKE_LED::reactiveAlarmTime()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }        
         delay(1);
     }   
 }
@@ -575,6 +611,7 @@ void WAKE_LED::meteoInfo()
 
             break;
         case ROTARY::BUTTON_PRESS:
+            wakeLedAlarm->resetAlarm();
             break;
         case ROTARY::LONG_BUTTON_PRESS:
             ExitMeteoInfo = true;
@@ -582,8 +619,65 @@ void WAKE_LED::meteoInfo()
         default:
             break;
         }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }     
+        if(wakeLedAlarm->isAlarmActive())
+        {
+            ExitMeteoInfo = true;
+            wakeScreen = ALARM_ACTIVE_SCREEN;
+        }           
         delay(1);
     }  
+}
+
+void WAKE_LED::backlightTime()
+{
+    bool ExitBacklightTime = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t BacklightTime = display->getDisplayLedTurnoffTime();
+    while(!ExitBacklightTime)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(BacklightTime).c_str()));
+        display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Tempo backlight (s)");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(BacklightTime > 5)
+                BacklightTime -= 5;
+            else
+                BacklightTime = 120;
+            break;
+        case ROTARY::INCREMENT:
+            if(BacklightTime < 120)
+                BacklightTime += 5;
+            else
+                BacklightTime = 5;
+            break;
+        case ROTARY::BUTTON_PRESS:
+            display->setDisplayLedTurnoffTime(BacklightTime);
+            display->restartDisplayLedTimer();
+            display->drawPopUp("Backlight impostata", 1500);
+            ExitBacklightTime = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitBacklightTime = true;
+            break;
+        default:
+            break;
+        }
+        if(Button != ROTARY::NO_ACTION)
+        {
+            display->restartDisplayLedTimer();
+        }        
+        delay(1);
+    }    
 }
 
 WAKE_LED::WAKE_LED()
@@ -599,6 +693,9 @@ WAKE_LED::WAKE_LED()
 
 void WAKE_LED::init()
 {
+    display->manualManageDisplayLed = true;
+	display->manualSwitchLedDisplay(ON);
+	display->manualManageDisplayLed = false;
     display->drawPopUp("Home Microtech", 1500);
     display->clearBuff();
     display->drawString(NHDST7565::CENTER_POS, NHDST7565::TOP_POS, NHDST7565::W_6_H_13_B, "Collegamento");
@@ -622,6 +719,7 @@ void WAKE_LED::init()
     }
     delay(1000);
     display->clearDisplay();
+    display->restartDisplayLedTimer();
 }
 
 
@@ -650,9 +748,13 @@ void WAKE_LED::run()
     case REACTIVE_ALARM_SCREEN:
         reactiveAlarmTime();
         wakeScreen = MENU_SCREEN;
-        break;
+        break;        
     case METEO_INFO_SCREEN:
         meteoInfo();
+        wakeScreen = MENU_SCREEN;
+        break;
+    case BACKLIGHT_TIME_SCREEN:
+        backlightTime();
         wakeScreen = MENU_SCREEN;
         break;
     case ALARM_ACTIVE_SCREEN:

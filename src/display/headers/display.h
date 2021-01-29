@@ -2,6 +2,8 @@
 #define DISPLAY_H
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include "../../led/headers/led.h"
+#include <Chrono.h>
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -56,6 +58,9 @@ class NHDST7565
 	
         static const uint8_t DISPLAY_WIDTH = 128;
         static const uint8_t DISPLAY_HIGH = 64;
+        LEDS *displayLed;
+        Chrono *displayLedTurnoffTimer;
+        bool manualManageDisplayLed = false;
         NHDST7565();
         void clearDisplay();
         void clearBuff();
@@ -67,6 +72,11 @@ class NHDST7565
         void drawString(uint8_t XPos, uint8_t YPos, uint8_t Font, DispString String);
         void drawPopUp(DispString PopupText, uint16_t Delay);
         void drawDisplay(void displayRoutine(void));
+        uint16_t getDisplayLedTurnoffTime();
+        void setDisplayLedTurnoffTime(uint16_t TurnoffTime);
+        void restartDisplayLedTimer();
+        void displayLedManage();
+        void manualSwitchLedDisplay(bool Status);
 
     private:
     
@@ -89,6 +99,8 @@ class NHDST7565
         uint8_t setTextTop();
         uint8_t setTextMiddle();
         uint8_t setTextBottom();
+        uint16_t displayLedTurnoffTime = 20; // in secondi
+        
         void setTextParams(DispString Text, uint8_t Font);
         void setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPos, uint8_t &NewYPos);
 
