@@ -7,6 +7,7 @@
 #include "../../wifi/headers/wifi.h"
 #include "../../alarm/headers/alarms.h"
 #include "../../led/headers/led.h"
+#include "../../ir_sensor/headers/ir_sensor.h"
 #include "../../version.h"
 // #include "../../eeprom/headers/eeprom_esp.h"
 
@@ -32,6 +33,7 @@ class WAKE_LED
         WIFI_STATION *wifiStation;
         ALARM *wakeLedAlarm;
         LEDS *alarmLed;
+        SENSOR *irSensor;
         Chrono *preAccensionTimer;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 300; // In secondi

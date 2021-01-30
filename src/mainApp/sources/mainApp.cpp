@@ -72,6 +72,7 @@ void WAKE_LED::backGroundTasks()
     wakeLedAlarm->runAlarm(wifiStation->timeDateInfo.timestamp);
     manageAlarmLed();
     display->displayLedManage();
+    irSensor->readSensor();
 }
 
 void WAKE_LED::drawTopInfo()
@@ -222,7 +223,7 @@ void WAKE_LED::mainScreen()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }
@@ -262,6 +263,12 @@ void WAKE_LED::alarmActiveScreen()
             break;
         default:
             break;
+        }
+        if(irSensor->digitalVal(700, false) == ON)
+        {
+            wakeLedAlarm->resetAlarm();
+            ExitAlarmActive = true;
+            wakeScreen = MAIN_SCREEN;
         }
         display->manualSwitchLedDisplay(ON);
         if(!wakeLedAlarm->isAlarmActive())
@@ -336,7 +343,7 @@ void WAKE_LED::menu()
         {
             TopItem = 0;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }
@@ -427,7 +434,7 @@ void WAKE_LED::alarmScreen()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }
@@ -481,7 +488,7 @@ void WAKE_LED::preLedAccension()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }
@@ -528,7 +535,7 @@ void WAKE_LED::snoozeTime()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }        
@@ -575,7 +582,7 @@ void WAKE_LED::reactiveAlarmTime()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }        
@@ -619,7 +626,7 @@ void WAKE_LED::meteoInfo()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }     
@@ -672,7 +679,7 @@ void WAKE_LED::backlightTime()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION)
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
         {
             display->restartDisplayLedTimer();
         }        
@@ -687,6 +694,7 @@ WAKE_LED::WAKE_LED()
     wifiStation = new WIFI_STATION();
     wakeLedAlarm = new ALARM();
     alarmLed = new LEDS(D1, LEDS::PWM);
+    irSensor = new SENSOR();
     preAccensionTimer = new Chrono(Chrono::SECONDS, false);
 }
 
@@ -698,23 +706,23 @@ void WAKE_LED::init()
 	display->manualManageDisplayLed = false;
     display->drawPopUp("Home Microtech", 1500);
     display->clearBuff();
-    display->drawString(NHDST7565::CENTER_POS, NHDST7565::TOP_POS, NHDST7565::W_6_H_13_B, "Collegamento");
-    display->drawString(NHDST7565::CENTER_POS, 15, NHDST7565::W_6_H_13_B, "al wifi...");
+    display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Collegamento");
+    display->drawString(NHDST7565::CENTER_POS, 42, NHDST7565::W_6_H_13_B, "al wifi...");
     display->sendBuff();
     wifiStation->initWifiStation();
     display->clearDisplay();
     if(wifiStation->isWifiConnected())
     {
         display->clearBuff();
-        display->drawString(NHDST7565::CENTER_POS, NHDST7565::TOP_POS, NHDST7565::W_6_H_13_B, "Wifi");
-        display->drawString(NHDST7565::CENTER_POS, 15, NHDST7565::W_6_H_13_B, "collegato");
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Wifi");
+        display->drawString(NHDST7565::CENTER_POS, 42, NHDST7565::W_6_H_13_B, "collegato");
         display->sendBuff();
     }
     else
     {
         display->clearBuff();
-        display->drawString(NHDST7565::CENTER_POS, NHDST7565::TOP_POS, NHDST7565::W_6_H_13_B, "Wifi");
-        display->drawString(NHDST7565::CENTER_POS, 15, NHDST7565::W_6_H_13_B, "non collegato");
+        display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Wifi");
+        display->drawString(NHDST7565::CENTER_POS, 42, NHDST7565::W_6_H_13_B, "non collegato");
         display->sendBuff();
     }
     delay(1000);

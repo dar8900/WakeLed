@@ -59,13 +59,4 @@ bool LEDS::getDigitalOutStatus()
     return digitalOutStatus;
 }
 
-uint16_t LEDS::readAnalog()
-{
-    uint16_t AnalogVal = 0;
-    if(pinModality == ANALOG)
-    {
-        AnalogVal = analogRead(pinNumber);
-    }
-    return AnalogVal;
-}
 

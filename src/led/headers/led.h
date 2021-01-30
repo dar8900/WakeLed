@@ -18,8 +18,7 @@ class LEDS
         {
             DIGITAL_IN = 0,
             DIGITAL_OUT,
-            PWM,
-            ANALOG
+            PWM
         };
         static const uint16_t PWM_RANGE = 4096;
         LEDS(uint8_t Pin, uint8_t Mode);
@@ -27,7 +26,6 @@ class LEDS
         void writeDigital(bool Status);
         bool readDigital();
         bool getDigitalOutStatus();
-        uint16_t readAnalog();
 };
 
 #endif
