@@ -18,7 +18,7 @@ DispString menuVoices[MAX_MENU_VOICES] =
 
 void WAKE_LED::manageAlarmLed()
 {
-    uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime / 60;
+    uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime;
     uint8_t ActualHour = 0, ActualMinute = 0;
     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
     if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0 && !wakeLedAlarm->isAlarmSnoozed())
@@ -42,11 +42,18 @@ void WAKE_LED::manageAlarmLed()
             {
                 TurnOnLed = true;
             }
-
         }
+
         if(TurnOnLed)
         {
-            if(preAccensionTimer->hasPassed(1, true))
+            if(accensionLedPwmIncrement == 0)
+            {
+                if(AlarmMinute - ActualMinute < PreAccensionMinute)
+                {
+                    accensionLedPwmIncrement += LEDS::PWM_RANGE / (preAccensionTime - (AlarmMinute - ActualMinute));
+                }
+            }            
+            if(preAccensionTimer->hasPassed(60, true) && accensionLedPwmIncrement <= LEDS::PWM_RANGE)
             {
                 alarmLed->writePwm(accensionLedPwmIncrement);
                 accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
@@ -446,7 +453,7 @@ void WAKE_LED::preLedAccension()
 {
     bool ExitPreAccensionSet = false;
     uint8_t Button = ROTARY::NO_ACTION;
-    uint16_t Accension = preAccensionTime / 60;
+    uint16_t Accension = preAccensionTime;
     while(!ExitPreAccensionSet)
     {
         display->clearBuff();
@@ -479,7 +486,7 @@ void WAKE_LED::preLedAccension()
             break;
         case ROTARY::BUTTON_PRESS:
             display->drawPopUp("Accensione impostata", 1500);
-            preAccensionTime = Accension * 60;
+            preAccensionTime = Accension;
             ExitPreAccensionSet = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
