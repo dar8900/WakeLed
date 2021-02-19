@@ -18,10 +18,8 @@ typedef String WifiString;
 class WIFI_STATION
 {
     private:
-        const char *SSID = "FASTWEB-85B1EA";
-        const char *PASSWD = "ZGFyaW9zYXJhYmFzZTY0";
-        // const char *SSID = "DOOM_SLAYER";
-        // const char *PASSWD = "dari9299";
+        const char *SSID = "<SSID>";
+        const char *PASSWD = "<PASSWORD>";
         WiFiUDP *ntpUDP;
         NTPClient *timeClient; //(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
         const WifiString NTP_SERVER = "it.pool.ntp.org";//"europe.pool.ntp.org";
