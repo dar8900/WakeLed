@@ -61,7 +61,7 @@ void WAKE_LED::manageAlarmLed()
         }
         else
         {
-            alarmLed->writePwm(0);
+            alarmLed->writeDigital(OFF);
         }        
     }
     else
@@ -225,7 +225,21 @@ void WAKE_LED::mainScreen()
             ExitMainScreen = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
-            wakeLedAlarm->resetAlarm();
+            if(wakeLedAlarm->isAlarmSet())
+            {
+                wakeLedAlarm->resetAlarm();
+            }
+            else
+            {
+                if(alarmLed->getPwmValue() == LEDS::PWM_RANGE)
+                {
+                    alarmLed->writeDigital(OFF);
+                }
+                else
+                {
+                    alarmLed->writeDigital(ON);
+                }
+            }
             break;
         default:
             break;

@@ -12,6 +12,7 @@ class LEDS
         uint8_t pinNumber;
         uint8_t pinModality;
         bool digitalOutStatus = OFF;
+        uint16_t pwmValueSetted = 0;
 
     public:
         enum
@@ -26,6 +27,7 @@ class LEDS
         void writeDigital(bool Status);
         bool readDigital();
         bool getDigitalOutStatus();
+        uint16_t getPwmValue();
 };
 
 #endif

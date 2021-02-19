@@ -22,9 +22,10 @@ LEDS::LEDS(uint8_t Pin, uint8_t Mode)
 
 void LEDS::writePwm(uint16_t DutyCycle)
 {
-    if(pinModality == PWM)
+    if(pinModality == PWM && (DutyCycle >= 0 && DutyCycle <= PWM_RANGE))
     {
         analogWrite(pinNumber, DutyCycle);
+        pwmValueSetted = DutyCycle;
     }
 }
 
@@ -34,6 +35,18 @@ void LEDS::writeDigital(bool Status)
     {
         digitalWrite(pinNumber, Status == ON ? HIGH : LOW);
         digitalOutStatus = Status;
+    }
+    else if(pinModality == PWM)
+    {
+        if(Status == ON)
+        {
+            pwmValueSetted = PWM_RANGE;
+        }
+        else
+        {
+            pwmValueSetted = 0;
+        }
+        analogWrite(pinNumber, pwmValueSetted);
     }
 }
 
@@ -60,3 +73,7 @@ bool LEDS::getDigitalOutStatus()
 }
 
 
+uint16_t LEDS::getPwmValue()
+{
+    return pwmValueSetted;
+}
