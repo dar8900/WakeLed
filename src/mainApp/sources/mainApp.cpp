@@ -1,12 +1,14 @@
 #include "../headers/mainApp.h"
+#include <ctime>
 
 #define METEO_X_START   92
 
-#define MAX_MENU_VOICES 6
+#define MAX_MENU_VOICES_ONLINE 6
+#define MAX_MENU_VOICES_OFFLINE 8
 
 #define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
 
-DispString menuVoices[MAX_MENU_VOICES] = 
+DispString menuVoicesOnline[MAX_MENU_VOICES_ONLINE] = 
 {
     "Imposta allarme",
     "Imposta tempo led",
@@ -14,6 +16,18 @@ DispString menuVoices[MAX_MENU_VOICES] =
     "Imposta riavvio all.",
     "Tempo backlight",
     "Info meteo",
+};
+
+DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] = 
+{
+    "Imposta allarme",
+    "Imposta tempo led",
+    "Imposta snooze all.",
+    "Imposta riavvio all.",
+    "Tempo backlight",
+    "Info meteo",
+    "Imposta ora",
+    "Iposta data"
 };
 
 void WAKE_LED::manageAlarmLed()
@@ -310,6 +324,15 @@ void WAKE_LED::menu()
     int8_t Button = ROTARY::NO_ACTION;
     uint8_t ItemSel = oldMenuItem, TopItem = 0;
     const uint8 MaxItemList = 4;
+    uint8_t MenuVoices = 0;
+    if(wifiStation->isWifiConnected())
+    {
+        MenuVoices = MAX_MENU_VOICES_ONLINE;
+    }
+    else
+    {
+        MenuVoices = MAX_MENU_VOICES_OFFLINE;
+    }
     while(!ExitMenu)
     {
         display->clearBuff();
@@ -317,9 +340,16 @@ void WAKE_LED::menu()
         for(int MenuItem = 0; MenuItem < MaxItemList; MenuItem++)
         {
             uint8_t NextItem = TopItem + MenuItem;
-            if(NextItem >= MAX_MENU_VOICES)
+            if(NextItem >= MenuVoices)
                 break;
-            display->drawString(8, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, menuVoices[NextItem]); 
+            if(wifiStation->isWifiConnected())
+            {
+                display->drawString(8, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, menuVoicesOnline[NextItem]); 
+            }
+            else
+            {
+                display->drawString(8, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, menuVoicesOffline[NextItem]); 
+            }
             if(NextItem == ItemSel)
             {
                 display->drawCircle(4, 17 + (12 * MenuItem), 2, true);
@@ -334,10 +364,10 @@ void WAKE_LED::menu()
             if(ItemSel > 0)
                 ItemSel--;
             else
-                ItemSel = MAX_MENU_VOICES - 1;
+                ItemSel = MenuVoices - 1;
             break;
         case ROTARY::INCREMENT:
-            if(ItemSel < MAX_MENU_VOICES - 1)
+            if(ItemSel < MenuVoices - 1)
                 ItemSel++;
             else
                 ItemSel = 0;        
@@ -708,6 +738,211 @@ void WAKE_LED::backlightTime()
     }    
 }
 
+void WAKE_LED::setOfflineTime()
+{
+    bool ExitSetTime = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint8_t Hour = 0, Minute = 0;
+    bool IsHour = true;
+    while(!ExitSetTime)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(IsHour)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Hour).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta ora");
+        }
+        else
+        {        
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Minute).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta minuti");
+        }
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(IsHour)
+            {
+                if(Hour > 0)
+                    Hour--;
+                else
+                    Hour = 23;
+            }
+            else
+            {
+                if(Minute > 0)
+                    Minute--;
+                else
+                    Minute = 59;                
+            }
+            break;
+        case ROTARY::INCREMENT:
+            if(IsHour)
+            {
+                if(Hour < 23)
+                    Hour++;
+                else
+                    Hour = 0;
+            }
+            else
+            {
+                if(Minute < 59)
+                    Minute++;
+                else
+                    Minute = 0;
+            }
+            break;
+        case ROTARY::BUTTON_PRESS:
+            if(IsHour)
+            {
+                IsHour = false;
+            }
+            else
+            {
+                display->drawPopUp("Ora impostata", 1500);
+                wifiStation->setOfflineTime(Hour, Minute);
+                ExitSetTime = true;
+            }
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            if(IsHour)
+                ExitSetTime = true;
+            else
+                IsHour = true;
+            break;
+        default:
+            break;
+        }
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        {
+            display->restartDisplayLedTimer();
+        }        
+        delay(1);
+    } 
+}
+
+void WAKE_LED::setOfflineDate()
+{
+    bool ExitSetDate = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint8_t Day = 0, Month = 0, Year = 0;
+    const uint8_t DAY = 0, MONTH = 1, YEAR = 2;
+    const int DayInMonth[12]={31,28,31,30,31,30,31,31,30,31,30,31};
+    uint8_t WichChange = YEAR;
+    while(!ExitSetDate)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(WichChange == DAY)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Day).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta anno");
+        }
+        else if(WichChange == MONTH)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Month).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta mese");              
+        }
+        else
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Year + 2000).c_str()));
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta giorno");
+        }        
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(WichChange == DAY)
+            {
+                if(Day > 1)
+                    Day--;
+                else
+                    Day = DayInMonth[Month - 1];
+            }
+            else if(WichChange == MONTH)
+            {
+                if(Month > 1)
+                    Month--;
+                else
+                    Month = 12;                
+            }
+            else
+            {
+                if(Year > 21)
+                    Year--;
+                else
+                    Year = 99; 
+            }
+            break;
+        case ROTARY::INCREMENT:
+            if(WichChange == DAY)
+            {
+                if(Day < DayInMonth[Month - 1])
+                    Day++;
+                else
+                    Day = 1;
+            }
+            else if(WichChange == MONTH)
+            {
+                if(Month < 12)
+                    Month++;
+                else
+                    Month = 1;                
+            }
+            else
+            {
+                if(Year < 99)
+                    Year++;
+                else
+                    Year = 21; 
+            }
+            break;
+        case ROTARY::BUTTON_PRESS:
+            if(WichChange == DAY)
+            {
+                wifiStation->setOfflineDate(Day, Month, Year);
+                display->drawPopUp("Data impostata", 1500);
+                ExitSetDate = true;
+            }
+            else if(WichChange == MONTH)
+            {
+                WichChange = DAY;
+            }
+            else
+            {
+                WichChange = MONTH;
+            }
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            if(WichChange == DAY)
+            {
+                WichChange = MONTH;
+            }
+            else if(WichChange == MONTH)
+            {
+                WichChange = YEAR;
+            }
+            else
+            {
+                ExitSetDate = true;
+            }
+            break;
+        default:
+            break;
+        }
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        {
+            display->restartDisplayLedTimer();
+        }        
+        delay(1);
+    }     
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -788,7 +1023,13 @@ void WAKE_LED::run()
         break;
     case ALARM_ACTIVE_SCREEN:
         alarmActiveScreen();
-        break;        
+        break;  
+    case SET_TIME_OFFLINE:
+        wakeScreen = MENU_SCREEN;
+        break;
+    case SET_DATE_OFFLINE:
+        wakeScreen = MENU_SCREEN;
+        break;      
     default:
         break;
     }

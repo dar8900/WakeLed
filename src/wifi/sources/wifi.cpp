@@ -154,6 +154,44 @@ bool WIFI_STATION::isWifiConnected()
     return wifiConnected;
 }
 
+void WIFI_STATION::setOfflineTime(uint8_t Hour, uint8_t Minute)
+{
+    struct tm t;
+    uint32_t timestamp = 0;
+    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    uint8_t Year = (1900 + locTime->tm_year) % 100;
+    uint8_t Month = 1 + locTime->tm_mon;
+    uint8_t Day = locTime->tm_mday;
+    t.tm_year = (2000 + Year) - 1900;  // Year - 1900
+    t.tm_mon = Month - 1;           // Month, where 0 = jan
+    t.tm_mday = Day;          // Day of the month    
+    t.tm_hour = Hour;
+    t.tm_min = Minute;
+    t.tm_sec = 0;
+    timestamp = (uint32_t)mktime(&t); 
+    if(!isWifiConnected())
+        epochTimestamp = timestamp;
+}
+
+void WIFI_STATION::setOfflineDate(uint8_t Day, uint8_t Month, uint8_t Year)
+{
+    struct tm t;
+    uint32_t timestamp = 0;
+    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    uint8_t Hour = locTime->tm_hour;
+    uint8_t Minute = locTime->tm_min;    
+    t.tm_year = (2000 + Year) - 1900;  // Year - 1900
+    t.tm_mon = Month - 1;           // Month, where 0 = jan
+    t.tm_mday = Day;          // Day of the month
+    t.tm_hour = Hour;
+    t.tm_min = Minute;
+    t.tm_sec = 0;    
+    timestamp = (uint32_t)mktime(&t); 
+    if(!isWifiConnected())
+        epochTimestamp = timestamp;
+}
+
+
 void WIFI_STATION::initWifiStation()
 {
     apiWeatherCall = "http://api.openweathermap.org/data/2.5/weather?id=" + BOLOGNA_ID + "&appid=" + WEATHER_API_KEY;
