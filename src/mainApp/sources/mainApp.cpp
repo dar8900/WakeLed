@@ -27,7 +27,7 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Tempo backlight",
     "Info meteo",
     "Imposta ora",
-    "Iposta data"
+    "Imposta data"
 };
 
 void WAKE_LED::manageAlarmLed()
@@ -828,7 +828,7 @@ void WAKE_LED::setOfflineDate()
 {
     bool ExitSetDate = false;
     uint8_t Button = ROTARY::NO_ACTION;
-    uint8_t Day = 0, Month = 0, Year = 0;
+    uint8_t Day = 1, Month = 1, Year = 21;
     const uint8_t DAY = 0, MONTH = 1, YEAR = 2;
     const int DayInMonth[12]={31,28,31,30,31,30,31,31,30,31,30,31};
     uint8_t WichChange = YEAR;
@@ -839,7 +839,7 @@ void WAKE_LED::setOfflineDate()
         if(WichChange == DAY)
         {
             display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Day).c_str()));
-            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta anno");
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta giorno");
         }
         else if(WichChange == MONTH)
         {
@@ -849,7 +849,7 @@ void WAKE_LED::setOfflineDate()
         else
         {
             display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(Year + 2000).c_str()));
-            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta giorno");
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Imposta anno");
         }        
         display->sendBuff();
         backGroundTasks();
@@ -1025,9 +1025,11 @@ void WAKE_LED::run()
         alarmActiveScreen();
         break;  
     case SET_TIME_OFFLINE:
+        setOfflineTime();
         wakeScreen = MENU_SCREEN;
         break;
     case SET_DATE_OFFLINE:
+        setOfflineDate();
         wakeScreen = MENU_SCREEN;
         break;      
     default:
