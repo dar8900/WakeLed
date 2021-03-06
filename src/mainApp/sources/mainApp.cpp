@@ -35,7 +35,7 @@ void WAKE_LED::manageAlarmLed()
     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime;
     uint8_t ActualHour = 0, ActualMinute = 0;
     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
-    if(wakeLedAlarm->isAlarmSet() && preAccensionTime != 0 && !wakeLedAlarm->isAlarmSnoozed())
+    if(wakeLedAlarm->isAlarmSet() && PreAccensionMinute != 0 && !wakeLedAlarm->isAlarmSnoozed())
     {
         std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
         ActualHour = locTime->tm_hour;
@@ -64,13 +64,13 @@ void WAKE_LED::manageAlarmLed()
             {
                 if(AlarmMinute - ActualMinute < PreAccensionMinute)
                 {
-                    accensionLedPwmIncrement += LEDS::PWM_RANGE / (preAccensionTime - (AlarmMinute - ActualMinute));
+                    accensionLedPwmIncrement += LEDS::PWM_RANGE / (PreAccensionMinute - (AlarmMinute - ActualMinute));
                 }
             }            
             if(preAccensionTimer->hasPassed(60, true) && accensionLedPwmIncrement <= LEDS::PWM_RANGE)
             {
                 alarmLed->writePwm(accensionLedPwmIncrement);
-                accensionLedPwmIncrement += (LEDS::PWM_RANGE / preAccensionTime);
+                accensionLedPwmIncrement += (LEDS::PWM_RANGE / PreAccensionMinute);
             }
         }
         else
@@ -82,7 +82,8 @@ void WAKE_LED::manageAlarmLed()
     {
         preAccensionTimer->restart();
         ledDutyCycle = 0;
-        alarmLed->writePwm(ledDutyCycle);
+        if(!alarmLedManual)
+            alarmLed->writePwm(ledDutyCycle);
         accensionLedPwmIncrement = 0;
     }
 }
@@ -248,10 +249,12 @@ void WAKE_LED::mainScreen()
                 if(alarmLed->getPwmValue() == LEDS::PWM_RANGE)
                 {
                     alarmLed->writeDigital(OFF);
+                    alarmLedManual = false;
                 }
                 else
                 {
                     alarmLed->writeDigital(ON);
+                    alarmLedManual = true;
                 }
             }
             break;

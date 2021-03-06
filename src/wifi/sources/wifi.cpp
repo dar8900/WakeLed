@@ -1,4 +1,5 @@
 #include "../headers/wifi.h"
+#include "../wifi_cred.h"
 
 WIFI_STATION::WIFI_STATION()
 {

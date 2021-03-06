@@ -38,10 +38,11 @@ class WAKE_LED
         SENSOR *irSensor;
         Chrono *preAccensionTimer;
         uint8_t wakeScreen = MAIN_SCREEN;
-        uint16_t preAccensionTime = 300; // In secondi
+        uint16_t preAccensionTime = 5; // In minuti
         uint16_t accensionLedPwmIncrement = 0;
         uint16_t ledDutyCycle = 0;
         uint8_t oldMenuItem = 0;
+        bool alarmLedManual = false;
         
         void manageAlarmLed();
         void backGroundTasks();
