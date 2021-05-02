@@ -452,7 +452,7 @@ void WAKE_LED::alarmScreen()
                 if(AlarmHour < 23)
                     AlarmHour++;
                 else
-                    AlarmHour = 23;
+                    AlarmHour = 0;
             }
             else
             {
