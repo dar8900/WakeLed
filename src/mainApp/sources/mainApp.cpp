@@ -30,6 +30,28 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Imposta data"
 };
 
+// void WAKE_LED::manageAlarmLed()
+// {
+//     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionSeconds = preAccensionTime * 60;
+//     uint8_t ActualHour = 0, ActualMinute = 0;
+//     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute); 
+//     if(wakeLedAlarm->isAlarmSet() && PreAccensionSeconds != 0 && !wakeLedAlarm->isAlarmSnoozed())
+//     {
+//         std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
+//         ActualHour = locTime->tm_hour;
+//         ActualMinute = locTime->tm_min;
+        
+//     }
+//     else
+//     {
+//         preAccensionTimer->restart();
+//         ledDutyCycle = 0;
+//         if(!alarmLedManual)
+//             alarmLed->writePwm(ledDutyCycle);
+//         accensionLedPwmIncrement = 0;       
+//     }
+// }
+
 void WAKE_LED::manageAlarmLed()
 {
     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime;
@@ -833,7 +855,7 @@ void WAKE_LED::setOfflineDate()
     uint8_t Button = ROTARY::NO_ACTION;
     uint8_t Day = 1, Month = 1, Year = 21;
     const uint8_t DAY = 0, MONTH = 1, YEAR = 2;
-    const int DayInMonth[12]={31,28,31,30,31,30,31,31,30,31,30,31};
+    const int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
     uint8_t WichChange = YEAR;
     while(!ExitSetDate)
     {
