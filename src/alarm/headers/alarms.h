@@ -9,8 +9,9 @@
 
 typedef struct 
 {
-    uint8_t hour;
-    uint8_t minute;
+    uint8_t hour;     /* ora della struttura */
+    uint8_t minute;  /* minuto della struttura */
+    uint32_t ts;    /* timestamp della struttura */
 }ALARM_TIME;
 
 
@@ -49,6 +50,7 @@ class ALARM
         void setReactiveAlarmTime(uint16_t ReactiveAlarmTime = 5);
         uint16_t getReactiveAlarmTime();
         void runAlarm(uint32_t GlobalTimestamp);
+        uint32_t getAlarmTimestamp();
 };
 
 #endif

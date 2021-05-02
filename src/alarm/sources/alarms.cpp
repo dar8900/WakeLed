@@ -1,10 +1,12 @@
 #include "../headers/alarms.h"
+#include <ctime>
 
 void ALARM::getActualTime(uint32_t GlobalTimestamp)
 {
     std::tm *locTime = std::localtime((time_t *)&GlobalTimestamp);
     actualTime.hour = locTime->tm_hour;
     actualTime.minute = locTime->tm_min;
+    actualTime.ts = GlobalTimestamp;
 }
 
 void ALARM::checkAlarm(uint32_t GlobalTimestamp)
@@ -86,8 +88,27 @@ void ALARM::getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute)
 
 void ALARM::setAlarmTime(uint8_t AlarmHour, uint8_t AlarmMinute)
 {
+    uint32_t ActualTime = actualTime.ts;
+    const int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    std::tm *locTime = std::localtime((time_t *)&ActualTime);
     alarmTime.hour = AlarmHour;
     alarmTime.minute = AlarmMinute;
+    locTime->tm_hour = alarmTime.hour;
+    locTime->tm_min = alarmTime.minute;
+    if(alarmTime.hour < actualTime.hour)
+    {
+        if(locTime->tm_mday + 1 <= DayInMonth[locTime->tm_mon])
+            locTime->tm_mday += 1;
+        else
+        {
+            locTime->tm_mday = 1;
+            if(locTime->tm_mon + 1 < 12)
+                locTime->tm_mon += 1;
+            else
+                locTime->tm_mon = 0;
+        }
+    }
+    alarmTime.ts = mktime(locTime);
 }
 
 void ALARM::setSnoozeTime(uint16_t SnoozeTime)
@@ -110,6 +131,10 @@ uint16_t ALARM::getReactiveAlarmTime()
     return (reactiveAlarmTime / 60);
 }
 
+uint32_t ALARM::getAlarmTimestamp()
+{
+    return alarmTime.ts;
+}
 
 void ALARM::runAlarm(uint32_t GlobalTimestamp)
 {
