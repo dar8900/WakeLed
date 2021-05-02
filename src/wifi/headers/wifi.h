@@ -20,7 +20,7 @@ class WIFI_STATION
     private:
         WiFiUDP *ntpUDP;
         NTPClient *timeClient; //(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-        const WifiString NTP_SERVER = "it.pool.ntp.org";//"europe.pool.ntp.org";
+        const WifiString NTP_SERVER = "ntp1.inrim.it";;
         const WifiString BOLOGNA_ID = "3181927";
         const WifiString WEATHER_API_KEY = "ec79bf368720417f78abda66d4e47828";
         bool wifiConnected = false;
@@ -32,6 +32,7 @@ class WIFI_STATION
         Chrono *takeTimeBackUp;
         bool backupTimerStarted = false;
         uint32_t epochTimestamp = 1609459200;
+        bool legalHourIsSetted = false;
         bool initWeather = true;
         void connectToWifi();
         void weatherHttpJson();
@@ -39,6 +40,8 @@ class WIFI_STATION
         uint32_t getTimestamp(bool WifiConn);
         DispString getTimeFormatted();
         DispString getDateFormatted();
+        void legalHourShift();
+        
 
     public:
         typedef struct 

@@ -99,7 +99,7 @@ class NHDST7565
         uint8_t setTextTop();
         uint8_t setTextMiddle();
         uint8_t setTextBottom();
-        uint16_t displayLedTurnoffTime = 20; // in secondi
+        uint16_t displayLedTurnoffTime = 10; // in secondi
         
         void setTextParams(DispString Text, uint8_t Font);
         void setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPos, uint8_t &NewYPos);

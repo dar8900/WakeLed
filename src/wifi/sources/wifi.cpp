@@ -150,6 +150,37 @@ DispString WIFI_STATION::getDateFormatted()
     return DispString(DateStr.c_str());
 }
 
+void WIFI_STATION::legalHourShift()
+{
+    uint8_t WeekDay = 0, Month = 0, MonthDay = 0;
+    bool LegalHourShift = false;
+    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    Month = 1 + locTime->tm_mon;
+    WeekDay = locTime->tm_wday;
+    MonthDay = locTime->tm_mday;
+    if(Month >= 3 && Month <= 10)
+    {
+        if((Month == 3 && MonthDay >= 25 && WeekDay == 0)  || (Month > 3))
+        {
+            LegalHourShift = true;
+        }
+        if((Month == 10 && MonthDay >= 25 && WeekDay == 0)  || (Month > 10))
+        {
+            LegalHourShift = false;
+        }
+    }
+    if(!legalHourIsSetted && LegalHourShift)
+    {
+        timeClient->setTimeOffset(7200);
+        legalHourIsSetted = true;
+    }
+    if(legalHourIsSetted && !LegalHourShift)
+    {
+        timeClient->setTimeOffset(3600);
+        legalHourIsSetted = false;
+    }
+}
+
 bool WIFI_STATION::isWifiConnected()
 {
     return wifiConnected;
@@ -222,6 +253,7 @@ void WIFI_STATION::run()
         timeDateInfo.timeFormatted = getTimeFormatted();
         getWeatherInfo(false);
         backupTimerStarted = false;
+        legalHourShift();
     }
     else
     {

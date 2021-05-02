@@ -9,7 +9,7 @@ DEBUG::DEBUG(uint32_t Baudrate)
 
 void DEBUG::writeDebugString(DebugString Message, DebugString Function, bool SendNewLine)
 {
-	DebugString Msg = "Funzione: " + Function + " Messaggio: " + Message;
+	DebugString Msg = "Funzione: " + Function + "() Messaggio: " + Message;
 	if(enableDebugLog)
 	{
 		if(SendNewLine)
