@@ -140,7 +140,6 @@ DispString WIFI_STATION::getTimeFormatted()
 DispString WIFI_STATION::getDateFormatted()
 {
     uint8_t Day = 0, Month = 0, Year = 0;
-    // WifiString DayStr = "", Month = "", YearStr = "";
     WifiString DateStr = "";
     std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
     Year = (1900 + locTime->tm_year) % 100;
