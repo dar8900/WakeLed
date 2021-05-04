@@ -11,9 +11,9 @@ void ALARM::getActualTime(uint32_t GlobalTimestamp)
 
 void ALARM::checkAlarm(uint32_t GlobalTimestamp)
 {
+    getActualTime(GlobalTimestamp);
     if(alarmSetted)
     {
-        getActualTime(GlobalTimestamp);
         if(actualTime.hour == alarmTime.hour && actualTime.minute == alarmTime.minute && !alarmActive && !alarmSnoozed)
         {
             if(!alarmActive)
