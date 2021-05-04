@@ -30,75 +30,33 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Imposta data"
 };
 
-// void WAKE_LED::manageAlarmLed()
-// {
-//     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionSeconds = preAccensionTime * 60;
-//     uint8_t ActualHour = 0, ActualMinute = 0;
-//     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute); 
-//     if(wakeLedAlarm->isAlarmSet() && PreAccensionSeconds != 0 && !wakeLedAlarm->isAlarmSnoozed())
-//     {
-//         std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
-//         ActualHour = locTime->tm_hour;
-//         ActualMinute = locTime->tm_min;
-        
-//     }
-//     else
-//     {
-//         preAccensionTimer->restart();
-//         ledDutyCycle = 0;
-//         if(!alarmLedManual)
-//             alarmLed->writePwm(ledDutyCycle);
-//         accensionLedPwmIncrement = 0;       
-//     }
-// }
-
 void WAKE_LED::manageAlarmLed()
 {
-    uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime;
+    uint32_t PreAccensionSeconds = preAccensionTime * 60;
     uint8_t ActualHour = 0, ActualMinute = 0;
-    wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
-    if(wakeLedAlarm->isAlarmSet() && PreAccensionMinute != 0 && !wakeLedAlarm->isAlarmSnoozed())
-    {
-        std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
-        ActualHour = locTime->tm_hour;
-        ActualMinute = locTime->tm_min;
-        uint16_t TimeDiff = 0;
-        bool TurnOnLed = false;
-        if(AlarmMinute - PreAccensionMinute >= 0)
+    uint32_t AlarmTimestamp = 0;
+    AlarmTimestamp = wakeLedAlarm->getAlarmTimestamp();
+    if(wakeLedAlarm->isAlarmSet() && PreAccensionSeconds != 0 && !wakeLedAlarm->isAlarmSnoozed())
+    {   
+        uint32_t TsDiff = AlarmTimestamp - wifiStation->timeDateInfo.timestamp;
+        if(TsDiff <= PreAccensionSeconds && TsDiff != 0)
         {
-            if(ActualMinute >= (AlarmMinute - PreAccensionMinute))
+            if(preAccensionTimer->hasPassed(1, true))
             {
-                TurnOnLed = true;
-            }
-        }
-        else
-        {
-            uint16_t TimeToMidNite = PreAccensionMinute - AlarmMinute;
-            if(ActualMinute >= (60 - TimeToMidNite) || ActualMinute <= AlarmMinute)
-            {
-                TurnOnLed = true;
-            }
-        }
-
-        if(TurnOnLed)
-        {
-            if(accensionLedPwmIncrement == 0)
-            {
-                if(AlarmMinute - ActualMinute < PreAccensionMinute)
+                if(accensionLedPwmIncrement < LEDS::PWM_RANGE)
                 {
-                    accensionLedPwmIncrement += LEDS::PWM_RANGE / (PreAccensionMinute - (AlarmMinute - ActualMinute));
+                    accensionLedPwmIncrement += (LEDS::PWM_RANGE / PreAccensionSeconds);
+                    alarmLed->writePwm(accensionLedPwmIncrement);
+                    // WakeledDebug.writeDebugString("Valore pwm: " + DebugString(accensionLedPwmIncrement));
                 }
-            }            
-            if(preAccensionTimer->hasPassed(60, true) && accensionLedPwmIncrement <= LEDS::PWM_RANGE)
-            {
-                alarmLed->writePwm(accensionLedPwmIncrement);
-                accensionLedPwmIncrement += (LEDS::PWM_RANGE / PreAccensionMinute);
             }
         }
         else
         {
-            alarmLed->writeDigital(OFF);
-        }        
+            accensionLedPwmIncrement = 0;
+            preAccensionTimer->restart();
+            alarmLed->writeDigital(OFF)
+        }
     }
     else
     {
@@ -106,9 +64,67 @@ void WAKE_LED::manageAlarmLed()
         ledDutyCycle = 0;
         if(!alarmLedManual)
             alarmLed->writePwm(ledDutyCycle);
-        accensionLedPwmIncrement = 0;
+        accensionLedPwmIncrement = 0;       
     }
 }
+
+// void WAKE_LED::manageAlarmLed()
+// {
+//     uint8_t AlarmHour = 0, AlarmMinute = 0, PreAccensionMinute = preAccensionTime;
+//     uint8_t ActualHour = 0, ActualMinute = 0;
+//     wakeLedAlarm->getAlarmTime(AlarmHour, AlarmMinute);
+//     if(wakeLedAlarm->isAlarmSet() && PreAccensionMinute != 0 && !wakeLedAlarm->isAlarmSnoozed())
+//     {
+//         std::tm *locTime = std::localtime((time_t *)&wifiStation->timeDateInfo.timestamp);
+//         ActualHour = locTime->tm_hour;
+//         ActualMinute = locTime->tm_min;
+//         uint16_t TimeDiff = 0;
+//         bool TurnOnLed = false;
+//         if(AlarmMinute - PreAccensionMinute >= 0)
+//         {
+//             if(ActualMinute >= (AlarmMinute - PreAccensionMinute))
+//             {
+//                 TurnOnLed = true;
+//             }
+//         }
+//         else
+//         {
+//             uint16_t TimeToMidNite = PreAccensionMinute - AlarmMinute;
+//             if(ActualMinute >= (60 - TimeToMidNite) || ActualMinute <= AlarmMinute)
+//             {
+//                 TurnOnLed = true;
+//             }
+//         }
+
+//         if(TurnOnLed)
+//         {
+//             if(accensionLedPwmIncrement == 0)
+//             {
+//                 if(AlarmMinute - ActualMinute < PreAccensionMinute)
+//                 {
+//                     accensionLedPwmIncrement += LEDS::PWM_RANGE / (PreAccensionMinute - (AlarmMinute - ActualMinute));
+//                 }
+//             }            
+//             if(preAccensionTimer->hasPassed(60, true) && accensionLedPwmIncrement <= LEDS::PWM_RANGE)
+//             {
+//                 alarmLed->writePwm(accensionLedPwmIncrement);
+//                 accensionLedPwmIncrement += (LEDS::PWM_RANGE / PreAccensionMinute);
+//             }
+//         }
+//         else
+//         {
+//             alarmLed->writeDigital(OFF);
+//         }        
+//     }
+//     else
+//     {
+//         preAccensionTimer->restart();
+//         ledDutyCycle = 0;
+//         if(!alarmLedManual)
+//             alarmLed->writePwm(ledDutyCycle);
+//         accensionLedPwmIncrement = 0;
+//     }
+// }
 
 void WAKE_LED::backGroundTasks()
 {
