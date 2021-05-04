@@ -12,7 +12,7 @@ class DEBUG
     public:
         DEBUG(uint32_t Baudrate = 115200);
         bool enableDebugLog = true;
-        void writeDebugString(DebugString Message, DebugString Function, bool SendNewLine);
+        void writeDebugString(DebugString Message, DebugString Function, bool SendNewLine = true);
 };
 
 extern DEBUG WakeledDebug;
