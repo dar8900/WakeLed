@@ -55,7 +55,7 @@ void WAKE_LED::manageAlarmLed()
         {
             accensionLedPwmIncrement = 0;
             preAccensionTimer->restart();
-            alarmLed->writeDigital(OFF)
+            alarmLed->writeDigital(OFF);
         }
     }
     else
