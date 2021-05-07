@@ -200,7 +200,11 @@ void WAKE_LED::mainScreen()
         }
         else
         {
-            drawAnalogClock();
+            // drawAnalogClock();
+            display->drawString(13, 20, NHDST7565::W_6_H_13_B, wifiStation->timeDateInfo.dateFormatted);
+            display->drawString(20, 33, NHDST7565::W_6_H_10, wifiStation->timeDateInfo.weekDay);
+            String TimeAndSec = String(wifiStation->timeDateInfo.timeFormatted.c_str()) + ":" + Seconds;
+            display->drawString(15, 48, NHDST7565::W_6_H_10, DispString(TimeAndSec.c_str()));
         }
         display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "v" + DispString(VERSION));
         drawWeatherInfo();
