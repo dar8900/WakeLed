@@ -16,29 +16,35 @@ void WIFI_STATION::connectToWifi()
 {
     uint16_t Timeout = 80;
     bool WifiConnected = false;
-    WiFi.begin(SSID, PASSWD);
-    WakeledDebug.writeDebugString("Connessione in corso...", __FUNCTION__);
-    while(!WifiConnected && Timeout > 0)
+    if(WakeledDebug.jumpWifiConn)
     {
-        if(WiFi.status() != WL_CONNECTED)
-        {
-            Timeout--;
-        }
-        else
-        {
-            WifiConnected = true;
-        }
-        delay(250);
-    }
-    if(WifiConnected)
-    {
-        WakeledDebug.writeDebugString("Connessione riuscita", __FUNCTION__);
+        WakeledDebug.writeDebugString("Connessione skippata", __FUNCTION__);
     }
     else
     {
-        WakeledDebug.writeDebugString("Connessione NON riuscita", __FUNCTION__);
+        WiFi.begin(SSID, PASSWD);
+        WakeledDebug.writeDebugString("Connessione in corso...", __FUNCTION__);
+        while(!WifiConnected && Timeout > 0)
+        {
+            if(WiFi.status() != WL_CONNECTED)
+            {
+                Timeout--;
+            }
+            else
+            {
+                WifiConnected = true;
+            }
+            delay(250);
+        }
+        if(WifiConnected)
+        {
+            WakeledDebug.writeDebugString("Connessione riuscita", __FUNCTION__);
+        }
+        else
+        {
+            WakeledDebug.writeDebugString("Connessione NON riuscita", __FUNCTION__);
+        }
     }
-    
     wifiConnected = WifiConnected;
 }
 

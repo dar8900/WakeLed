@@ -12,6 +12,7 @@ class DEBUG
     public:
         DEBUG(uint32_t Baudrate = 115200);
         bool enableDebugLog = true;
+        bool jumpWifiConn = false;
         void writeDebugString(DebugString Message, DebugString Function, bool SendNewLine = true);
 };
 
