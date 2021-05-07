@@ -85,7 +85,7 @@ void WAKE_LED::drawTopInfo()
     }
     if(wakeLedAlarm->isAlarmSet())
     {
-        display->drawUnicodeChar(12, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 93);
+        display->drawUnicodeChar(50, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 93);
     }
     if(wakeLedAlarm->isAlarmActive())
     {
@@ -209,7 +209,12 @@ void WAKE_LED::mainScreen()
         // display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "v" + DispString(VERSION));
         if(wakeLedAlarm->isAlarmSet())
         {
-            
+            uint8_t AlarmH = 0, AlarmM = 0;
+            wakeLedAlarm->getAlarmTime(AlarmH, AlarmM);
+            String AlarmT = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
+            AlarmT += ":";
+            AlarmT += AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
+            display->drawString(60 , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, AlarmT.c_str());
         }
         drawWeatherInfo();
         display->drawLine(86, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
