@@ -206,7 +206,11 @@ void WAKE_LED::mainScreen()
             String TimeAndSec = String(wifiStation->timeDateInfo.timeFormatted.c_str()) + ":" + Seconds;
             display->drawString(15, 48, NHDST7565::W_6_H_10, DispString(TimeAndSec.c_str()));
         }
-        display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "v" + DispString(VERSION));
+        // display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "v" + DispString(VERSION));
+        if(wakeLedAlarm->isAlarmSet())
+        {
+            
+        }
         drawWeatherInfo();
         display->drawLine(86, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
         display->drawLine(88, 0, display->DISPLAY_HIGH, NHDST7565::VERTICAL);
