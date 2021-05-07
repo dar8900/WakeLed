@@ -40,6 +40,7 @@ class WIFI_STATION
         uint32_t getTimestamp(bool WifiConn);
         DispString getTimeFormatted();
         DispString getDateFormatted();
+        DispString getWeekday();
         void legalHourShift();
         
 
@@ -59,6 +60,7 @@ class WIFI_STATION
             DispString timeFormatted;
             DispString dateFormatted;
             uint8_t dayHour;
+            DispString weekDay;
         }TIME_VARS;
         
         enum

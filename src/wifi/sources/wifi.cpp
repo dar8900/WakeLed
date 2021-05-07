@@ -1,6 +1,8 @@
 #include "../headers/wifi.h"
 #include "../wifi_cred.h"
 
+const DispString WeekDays[7] = {"Domenica", "Lunedi", "Martedi", "Mercoledi", "Giovedi", "Venerdi", "Sabato"};
+
 WIFI_STATION::WIFI_STATION()
 {
     ntpUDP = new WiFiUDP();
@@ -15,7 +17,7 @@ void WIFI_STATION::connectToWifi()
     uint16_t Timeout = 80;
     bool WifiConnected = false;
     WiFi.begin(SSID, PASSWD);
-    WakeledDebug.writeDebugString("Connessione in corso...", "connectToWifi", true);
+    WakeledDebug.writeDebugString("Connessione in corso...", __FUNCTION__);
     while(!WifiConnected && Timeout > 0)
     {
         if(WiFi.status() != WL_CONNECTED)
@@ -30,11 +32,11 @@ void WIFI_STATION::connectToWifi()
     }
     if(WifiConnected)
     {
-        WakeledDebug.writeDebugString("Connessione riuscita", "connectToWifi", true);
+        WakeledDebug.writeDebugString("Connessione riuscita", __FUNCTION__);
     }
     else
     {
-        WakeledDebug.writeDebugString("Connessione NON riuscita", "connectToWifi", true);
+        WakeledDebug.writeDebugString("Connessione NON riuscita", __FUNCTION__);
     }
     
     wifiConnected = WifiConnected;
@@ -48,15 +50,15 @@ void WIFI_STATION::weatherHttpJson()
     if(httpResponseCode == 200)
     {
         WifiString Payload = httpWeatherReq->getString();
-        DynamicJsonDocument weatherInfoJASON(1024);
-        deserializeJson(weatherInfoJASON, Payload.c_str());
-        weatherInfo.temperature = weatherInfoJASON["main"]["temp"];
+        DynamicJsonDocument weatherInfoJSON(1024);
+        deserializeJson(weatherInfoJSON, Payload.c_str());
+        weatherInfo.temperature = weatherInfoJSON["main"]["temp"];
         weatherInfo.temperature -= 273.15;
-        weatherInfo.perceivedTemp = weatherInfoJASON["main"]["feels_like"];
+        weatherInfo.perceivedTemp = weatherInfoJSON["main"]["feels_like"];
         weatherInfo.perceivedTemp -= 273.15;
-        weatherInfo.pressure = weatherInfoJASON["main"]["pressure"];
-        weatherInfo.humidity = weatherInfoJASON["main"]["humidity"];
-        weatherInfo.weatherID = weatherInfoJASON["weather"][0]["id"];
+        weatherInfo.pressure = weatherInfoJSON["main"]["pressure"];
+        weatherInfo.humidity = weatherInfoJSON["main"]["humidity"];
+        weatherInfo.weatherID = weatherInfoJSON["weather"][0]["id"];
         if(weatherInfo.weatherID >= 200 && weatherInfo.weatherID < 300)
         {
             weatherInfo.weatherID = TEMPESTA;
@@ -149,6 +151,12 @@ DispString WIFI_STATION::getDateFormatted()
     return DispString(DateStr.c_str());
 }
 
+DispString WIFI_STATION::getWeekday()
+{
+    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    return WeekDays[locTime->tm_wday];
+}
+
 void WIFI_STATION::legalHourShift()
 {
     uint8_t WeekDay = 0, Month = 0, MonthDay = 0;
@@ -237,6 +245,7 @@ void WIFI_STATION::initWifiStation()
         timeDateInfo.timestamp = 0;
         timeDateInfo.dateFormatted = "--/--/--";
         timeDateInfo.timeFormatted = "--:--";
+        timeDateInfo.weekDay = "--------";
     }
     
 }
@@ -250,6 +259,7 @@ void WIFI_STATION::run()
         timeDateInfo.timestamp = getTimestamp(wifiConnected);
         timeDateInfo.dateFormatted = getDateFormatted();
         timeDateInfo.timeFormatted = getTimeFormatted();
+        timeDateInfo.weekDay = getWeekday();
         getWeatherInfo(false);
         backupTimerStarted = false;
         legalHourShift();
@@ -268,6 +278,7 @@ void WIFI_STATION::run()
         timeDateInfo.timestamp = getTimestamp(wifiConnected);
         timeDateInfo.dateFormatted = getDateFormatted();
         timeDateInfo.timeFormatted = getTimeFormatted();
+        timeDateInfo.weekDay = getWeekday();
     }
     if(WiFi.status() != WL_CONNECTED)
     {
