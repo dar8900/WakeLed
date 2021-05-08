@@ -272,18 +272,18 @@ void NHDST7565::displayLedManage()
 	{
 		displayLedTurnoffTimer->stop();
 	}
-	if(oldDisplayLedPwmValue != displayLedPwmValue)
-	{
-		oldDisplayLedPwmValue = displayLedPwmValue;
-		if(displayLedPwmValue == 0)
-		{
-			displayLed->writeDigital(OFF);
-		}
-		else
-		{
-			displayLed->writePwm(displayLedPwmValue);
-		}
-	}
+	// if(oldDisplayLedPwmValue != displayLedPwmValue)
+	// {
+	// 	oldDisplayLedPwmValue = displayLedPwmValue;
+	// 	if(displayLedPwmValue == 0)
+	// 	{
+	// 		displayLed->writeDigital(OFF);
+	// 	}
+	// 	else
+	// 	{
+	// 		displayLed->writePwm(displayLedPwmValue);
+	// 	}
+	// }
 }
 
 void NHDST7565::manualSwitchLedDisplay(bool Status)
