@@ -3,8 +3,8 @@
 
 #define METEO_X_START   92
 
-#define MAX_MENU_VOICES_ONLINE 6
-#define MAX_MENU_VOICES_OFFLINE 8
+#define MAX_MENU_VOICES_ONLINE 7
+#define MAX_MENU_VOICES_OFFLINE 9
 
 #define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
 
@@ -16,6 +16,7 @@ DispString menuVoicesOnline[MAX_MENU_VOICES_ONLINE] =
     "Imposta riavvio all.",
     "Tempo backlight",
     "Info meteo",
+    "Luminosita display",
 };
 
 DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] = 
@@ -26,8 +27,9 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Imposta riavvio all.",
     "Tempo backlight",
     "Info meteo",
+    "Luminosita display",
     "Imposta ora",
-    "Imposta data"
+    "Imposta data",
 };
 
 void WAKE_LED::manageAlarmLed()
@@ -939,6 +941,63 @@ void WAKE_LED::setOfflineDate()
     }     
 }
 
+void WAKE_LED::setDisplayBrightness()
+{
+    bool ExitSetDisplayBrightness = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t Brightness = display->getDisplayLedBrightness();
+    String BrighStr = "";
+    while(!ExitSetDisplayBrightness)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(Brightness == 0)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Disabilitato");
+        }
+        else
+        {
+            BrighStr = String(Brightness) + "%";
+            display->drawString(NHDST7565::CENTER_POS, 12, NHDST7565::W_17_H_29, DispString(BrighStr.c_str()));
+        }
+        display->drawString(NHDST7565::CENTER_POS, 40, NHDST7565::W_5_H_8, "Imposta luminosita");
+        display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "display");
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(Brightness > 0)
+                Brightness--;
+            else
+                Brightness = 100;
+            break;
+        case ROTARY::INCREMENT:
+            if(Brightness < 100)
+                Brightness++;
+            else
+                Brightness = 0;
+            break;
+        case ROTARY::BUTTON_PRESS:
+            display->drawPopUp("Luminosita impostata", 1500);
+            display->setDisplayLedBrightness(Brightness);
+            ExitSetDisplayBrightness = true;
+            break;
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitSetDisplayBrightness = true;
+            break;
+        default:
+            break;
+        }
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        {
+            display->restartDisplayLedTimer();
+        }
+        delay(1);
+    }
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -1026,6 +1085,10 @@ void WAKE_LED::run()
         break;
     case SET_DATE_OFFLINE:
         setOfflineDate();
+        wakeScreen = MENU_SCREEN;
+        break;   
+    case SET_DISPLAY_BRIGHTNESS:
+        setDisplayBrightness();
         wakeScreen = MENU_SCREEN;
         break;      
     default:

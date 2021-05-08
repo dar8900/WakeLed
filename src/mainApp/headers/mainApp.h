@@ -25,6 +25,7 @@ class WAKE_LED
             REACTIVE_ALARM_SCREEN,
             BACKLIGHT_TIME_SCREEN,
             METEO_INFO_SCREEN,
+            SET_DISPLAY_BRIGHTNESS,
             SET_TIME_OFFLINE,
             SET_DATE_OFFLINE,
             MAX_SCREEN
@@ -61,6 +62,7 @@ class WAKE_LED
         void meteoInfo();
         void setOfflineTime();
         void setOfflineDate();
+        void setDisplayBrightness();
 
     public:
         WAKE_LED();
