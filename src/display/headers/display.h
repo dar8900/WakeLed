@@ -78,6 +78,7 @@ class NHDST7565
         void displayLedManage();
         void manualSwitchLedDisplay(bool Status);
         void setDisplayLedBrightness(uint8_t Brightness = 100);
+        uint8_t getDisplayLedBrightness();
 
     private:
     

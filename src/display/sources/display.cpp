@@ -8,7 +8,7 @@ NHDST7565::NHDST7565()
     u8g2 = new U8G2_ST7565_NHD_C12864_F_4W_HW_SPI(U8G2_R0, /* cs=*/ D8, /* dc=*/ 9, /* reset=*/ 10);
     u8g2->begin();
 	displayLed = new LEDS(D6, LEDS::PWM);
-	displayLedPwmValue = LEDS::PWM_RANGE;
+	displayLedPwmValue = LEDS::PWM_RANGE / 2;
 	displayLedTurnoffTimer = new Chrono(Chrono::SECONDS, false);
 }
 
@@ -272,34 +272,19 @@ void NHDST7565::displayLedManage()
 	{
 		displayLedTurnoffTimer->stop();
 	}
-	
+	if(oldDisplayLedPwmValue != displayLedPwmValue)
+	{
+		oldDisplayLedPwmValue = displayLedPwmValue;
+		if(displayLedPwmValue == 0)
+		{
+			displayLed->writeDigital(OFF);
+		}
+		else
+		{
+			displayLed->writePwm(displayLedPwmValue);
+		}
+	}
 }
-
-// void NHDST7565::displayLedManage()
-// {
-// 	if(!manualManageDisplayLed)
-// 	{
-// 		if(displayLedTurnoffTimer->hasPassed(displayLedTurnoffTime))
-// 		{
-// 			if(displayLed->getDigitalOutStatus() == ON)
-// 			{
-// 				displayLed->writeDigital(OFF);
-// 			}
-// 		}
-// 		else
-// 		{
-// 			if(displayLed->getDigitalOutStatus() == OFF)
-// 			{
-// 				displayLed->writeDigital(ON);
-// 			}
-// 		}
-// 	}
-// 	else
-// 	{
-// 		displayLedTurnoffTimer->stop();
-// 	}
-	
-// }
 
 void NHDST7565::manualSwitchLedDisplay(bool Status)
 {
@@ -326,4 +311,11 @@ void NHDST7565::setDisplayLedBrightness(uint8_t Brightness)
 	{
 		displayLedPwmValue = LEDS::PWM_RANGE;
 	}
+}
+
+uint8_t NHDST7565::getDisplayLedBrightness()
+{
+	uint8_t BrightnessPercent = 0;
+	BrightnessPercent = (displayLedPwmValue * 100) / LEDS::PWM_RANGE;
+	return BrightnessPercent;
 }
