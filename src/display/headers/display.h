@@ -77,6 +77,7 @@ class NHDST7565
         void restartDisplayLedTimer();
         void displayLedManage();
         void manualSwitchLedDisplay(bool Status);
+        void setDisplayLedBrightness(uint8_t Brightness = 100);
 
     private:
     
@@ -100,6 +101,8 @@ class NHDST7565
         uint8_t setTextMiddle();
         uint8_t setTextBottom();
         uint16_t displayLedTurnoffTime = 10; // in secondi
+        uint16_t displayLedPwmValue = 0;
+        uint16_t oldDisplayLedPwmValue = 0;
         
         void setTextParams(DispString Text, uint8_t Font);
         void setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPos, uint8_t &NewYPos);
