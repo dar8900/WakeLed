@@ -21,7 +21,7 @@ class LEDS
             DIGITAL_OUT,
             PWM
         };
-        static const uint16_t PWM_RANGE = 1023;
+        static const uint16_t PWM_RANGE = 4096;
         LEDS(uint8_t Pin, uint8_t Mode);
         void writePwm(uint16_t DutyCycle);
         void writeDigital(bool Status);
