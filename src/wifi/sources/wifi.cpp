@@ -51,7 +51,8 @@ void WIFI_STATION::connectToWifi()
 
 void WIFI_STATION::weatherHttpJson()
 {
-    httpWeatherReq->begin(apiWeatherCall.c_str());
+    WiFiClient client;
+    httpWeatherReq->begin(client, apiWeatherCall.c_str());
     int httpResponseCode = httpWeatherReq->GET();
     if(httpResponseCode == 200)
     {
