@@ -38,12 +38,15 @@ class WAKE_LED
         LEDS *alarmLed;
         SENSOR *irSensor;
         Chrono *preAccensionTimer;
+        Chrono *autoBrightnessTimer;
+        uint8_t autoBrightnessValue;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 5; // In minuti
         uint16_t accensionLedPwmIncrement = 0;
         uint16_t ledDutyCycle = 0;
         uint8_t oldMenuItem = 0;
         bool alarmLedManual = false;
+        bool displayBrightnessAuto = false;
         
         void manageAlarmLed();
         void backGroundTasks();
@@ -63,6 +66,7 @@ class WAKE_LED
         void setOfflineTime();
         void setOfflineDate();
         void setDisplayBrightness();
+        void adjustAutoBrightness();
 
     public:
         WAKE_LED();

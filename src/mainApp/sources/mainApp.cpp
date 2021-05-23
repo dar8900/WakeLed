@@ -70,6 +70,40 @@ void WAKE_LED::manageAlarmLed()
     }
 }
 
+void WAKE_LED::adjustAutoBrightness()
+{
+    if(displayBrightnessAuto)
+    {
+        if(autoBrightnessTimer->hasPassed(600, true))
+        {
+            time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
+            std::tm *locTime = std::localtime(&ts);
+            if(locTime->tm_hour >= 22 && locTime->tm_hour < 9)
+            {
+                autoBrightnessValue = 5;
+            }
+            else if(locTime->tm_hour >= 11 && locTime->tm_hour < 17)        
+            {
+                autoBrightnessValue = 100;
+            }
+            else if(locTime->tm_hour >= 9 && locTime->tm_hour < 11)    
+            {
+                autoBrightnessValue = 50;
+            }
+            else if(locTime->tm_hour >= 17 && locTime->tm_hour < 22)    
+            {
+                autoBrightnessValue = 25;
+            }
+            display->setDisplayLedBrightness(autoBrightnessValue);
+        }
+    }
+    else
+    {
+        autoBrightnessTimer->stop();
+        autoBrightnessValue = display->DISPLAY_BRIGHTNESS_DFLT;
+    }
+}
+
 void WAKE_LED::backGroundTasks()
 {
     wifiStation->run();
@@ -77,6 +111,7 @@ void WAKE_LED::backGroundTasks()
     manageAlarmLed();
     display->displayLedManage();
     irSensor->readSensor();
+    adjustAutoBrightness();
 }
 
 void WAKE_LED::drawTopInfo()
@@ -1007,6 +1042,7 @@ WAKE_LED::WAKE_LED()
     alarmLed = new LEDS(D1, LEDS::PWM);
     irSensor = new SENSOR();
     preAccensionTimer = new Chrono(Chrono::SECONDS, false);
+    autoBrightnessTimer = new Chrono(Chrono::SECONDS, false);
 }
 
 
