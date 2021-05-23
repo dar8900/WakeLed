@@ -59,6 +59,7 @@ class NHDST7565
 	
         static const uint8_t DISPLAY_WIDTH = 128;
         static const uint8_t DISPLAY_HIGH = 64;
+        static const uint8_t DISPLAY_BRIGHTNESS_DFLT = 50;
         LEDS *displayLed;
         Chrono *displayLedTurnoffTimer;
         bool manualManageDisplayLed = false;
@@ -78,7 +79,7 @@ class NHDST7565
         void restartDisplayLedTimer();
         void displayLedManage();
         void manualSwitchLedDisplay(bool Status);
-        void setDisplayLedBrightness(uint8_t Brightness = 100);
+        void setDisplayLedBrightness(uint8_t Brightness = DISPLAY_BRIGHTNESS_DFLT);
         uint8_t getDisplayLedBrightness();
 
     private:
