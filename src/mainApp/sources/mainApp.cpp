@@ -990,6 +990,10 @@ void WAKE_LED::setDisplayBrightness()
         {
             display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Disabilitato");
         }
+        else if(Brightness == 105)
+        {
+            display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Auto");
+        }
         else
         {
             BrighStr = String(Brightness) + "%";
@@ -1004,19 +1008,27 @@ void WAKE_LED::setDisplayBrightness()
         {
         case ROTARY::DECREMENT:
             if(Brightness > 0)
-                Brightness--;
+                Brightness -= 5;
             else
-                Brightness = 100;
+                Brightness = 105;
             break;
         case ROTARY::INCREMENT:
-            if(Brightness < 100)
-                Brightness++;
+            if(Brightness < 105)
+                Brightness += 5;
             else
                 Brightness = 0;
             break;
         case ROTARY::BUTTON_PRESS:
             display->drawPopUp("Luminosita impostata", 1500);
-            display->setDisplayLedBrightness(Brightness);
+            if(Brightness >= 0 && Brightness <= 100)
+            {
+                display->setDisplayLedBrightness(Brightness);
+                displayBrightnessAuto = false;
+            }
+            else
+            {
+                displayBrightnessAuto = true;
+            }
             ExitSetDisplayBrightness = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
