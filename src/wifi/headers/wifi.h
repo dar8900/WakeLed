@@ -31,7 +31,7 @@ class WIFI_STATION
         Chrono *weatherTimer;
         Chrono *takeTimeBackUp;
         bool backupTimerStarted = false;
-        uint32_t epochTimestamp = 1609459200;
+        time_t epochTimestamp = 1609459200;
         bool legalHourIsSetted = false;
         bool initWeather = true;
         void connectToWifi();

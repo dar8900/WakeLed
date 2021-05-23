@@ -125,11 +125,11 @@ uint32_t WIFI_STATION::getTimestamp(bool WifiConn)
     if(WifiConn)
     {
         ts = timeClient->getEpochTime();
-        epochTimestamp = ts;
+        epochTimestamp = (time_t)ts;
     }
     else
     {
-        ts = epochTimestamp;
+        ts = (uint32_t)epochTimestamp;
     }
     return ts;
 }
@@ -138,7 +138,7 @@ DispString WIFI_STATION::getTimeFormatted()
 {
     uint8_t Hour = 0, Minute = 0;
     WifiString TimeStr = "";
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     Hour = locTime->tm_hour;
     timeDateInfo.dayHour = Hour;
     Minute = locTime->tm_min;
@@ -150,7 +150,7 @@ DispString WIFI_STATION::getDateFormatted()
 {
     uint8_t Day = 0, Month = 0, Year = 0;
     WifiString DateStr = "";
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     Year = (1900 + locTime->tm_year) % 100;
     Month = 1 + locTime->tm_mon;
     Day = locTime->tm_mday;
@@ -160,7 +160,7 @@ DispString WIFI_STATION::getDateFormatted()
 
 DispString WIFI_STATION::getWeekday()
 {
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     return WeekDays[locTime->tm_wday];
 }
 
@@ -168,7 +168,7 @@ void WIFI_STATION::legalHourShift()
 {
     uint8_t WeekDay = 0, Month = 0, MonthDay = 0;
     bool LegalHourShift = false;
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     Month = 1 + locTime->tm_mon;
     WeekDay = locTime->tm_wday;
     MonthDay = locTime->tm_mday;
@@ -204,7 +204,7 @@ void WIFI_STATION::setOfflineTime(uint8_t Hour, uint8_t Minute)
 {
     struct tm t;
     uint32_t timestamp = 0;
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     uint8_t Year = (1900 + locTime->tm_year) % 100;
     uint8_t Month = 1 + locTime->tm_mon;
     uint8_t Day = locTime->tm_mday;
@@ -223,7 +223,7 @@ void WIFI_STATION::setOfflineDate(uint8_t Day, uint8_t Month, uint8_t Year)
 {
     struct tm t;
     uint32_t timestamp = 0;
-    std::tm *locTime = std::localtime((time_t *)&epochTimestamp);
+    std::tm *locTime = std::localtime(&epochTimestamp);
     uint8_t Hour = locTime->tm_hour;
     uint8_t Minute = locTime->tm_min;    
     t.tm_year = (2000 + Year) - 1900;  // Year - 1900
