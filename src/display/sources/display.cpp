@@ -153,6 +153,7 @@ void NHDST7565::clearBuff()
 {
 	u8g2->clearBuffer();
 }
+
 void NHDST7565::sendBuff()
 {
 	u8g2->sendBuffer();
