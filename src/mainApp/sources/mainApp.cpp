@@ -3,8 +3,10 @@
 
 #define METEO_X_START   92
 
-#define MAX_MENU_VOICES_ONLINE 7
-#define MAX_MENU_VOICES_OFFLINE 9
+#define MAX_MENU_VOICES_ONLINE  8
+#define MAX_MENU_VOICES_OFFLINE (MAX_MENU_VOICES_ONLINE + 2)
+
+#define MAX_SYSTEM_INFO_VOICES  8
 
 #define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
 
@@ -17,6 +19,7 @@ DispString menuVoicesOnline[MAX_MENU_VOICES_ONLINE] =
     "Tempo backlight",
     "Info meteo",
     "Luminosita display",
+    "Info sistema",
 };
 
 DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] = 
@@ -28,9 +31,24 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Tempo backlight",
     "Info meteo",
     "Luminosita display",
+    "Info sistema",
     "Imposta ora",
     "Imposta data",
 };
+
+DispString SystemInfoVoices[MAX_SYSTEM_INFO_VOICES] = 
+{
+    "Versione SW.",
+    "Allarme impostato",
+    "Tempo pre-accen.(min)",
+    "Tempo snooze (min)",
+    "Tempo restart( min)",
+    "Tempo backlight (s)",
+    "Luminosita (%)",
+    "Connessione wifi",
+};
+
+DispString SystemInfoValues[MAX_SYSTEM_INFO_VOICES];
 
 void WAKE_LED::manageAlarmLed()
 {
@@ -1045,6 +1063,74 @@ void WAKE_LED::setDisplayBrightness()
     }
 }
 
+void WAKE_LED::showSystemInfo()
+{
+    bool ExitShowSystemInfo = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint8_t ItemSel = oldMenuItem, TopItem = 0;
+    const uint8 MaxItemList = 4;
+    SystemInfoValues[VERSION_SW] = VERSION;
+    SystemInfoValues[ALARM_SET] = wakeLedAlarm->isAlarmSet() ? "SI" : "NO";
+    SystemInfoValues[PRE_ACC_TIME] = String(preAccensionTime).c_str();
+    SystemInfoValues[SNOOZE_TIME] = String(wakeLedAlarm->getSnoozeTime()).c_str();
+    SystemInfoValues[RESTART_TIME] = String(wakeLedAlarm->getReactiveAlarmTime()).c_str();
+    SystemInfoValues[BACKLIGHT_TIME] = String(display->getDisplayLedTurnoffTime()).c_str();
+    SystemInfoValues[BRIGHTNESS] = String(display->getDisplayLedBrightness()).c_str();
+    SystemInfoValues[WIFI_STATUS] = wifiStation->isWifiConnected() ? "SI" : "NO";
+    while(!ExitShowSystemInfo)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        for(int MenuItem = 0; MenuItem < MaxItemList; MenuItem++)
+        {
+            uint8_t NextItem = TopItem + MenuItem;
+            if(NextItem >= MAX_INFO)
+                break;
+            display->drawString(9, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, SystemInfoVoices[NextItem]); 
+            display->drawString(NHDST7565::RIGHT_POS, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, SystemInfoValues[NextItem]); 
+        }
+        display->drawUnicodeChar(NHDST7565::LEFT_POS, 24, NHDST7565::W_8_H_8_ICON, 112);
+        display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        switch (Button)
+        {
+        case ROTARY::DECREMENT:
+            if(ItemSel > 0)
+                ItemSel -= MAX_INFO / 2;
+            else
+                ItemSel = MAX_INFO - 1;
+            break;
+        case ROTARY::INCREMENT:
+            if(ItemSel < MAX_INFO - 1)
+                ItemSel += MAX_INFO / 2;
+            else
+                ItemSel = 0;        
+            break;
+        case ROTARY::BUTTON_PRESS:
+        case ROTARY::LONG_BUTTON_PRESS:
+            ExitShowSystemInfo = true;
+            break;
+        default:
+            break;
+        }
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        {
+            display->restartDisplayLedTimer();
+        }
+        if(ItemSel >= MaxItemList - 1)
+        {
+            TopItem = ItemSel - (MaxItemList - 1);
+        }
+        else
+        {
+            TopItem = 0;
+        }
+        delay(1);
+    }
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -1138,7 +1224,10 @@ void WAKE_LED::run()
     case SET_DISPLAY_BRIGHTNESS:
         setDisplayBrightness();
         wakeScreen = MENU_SCREEN;
-        break;      
+        break;     
+    case SYSTEM_INFO:
+        showSystemInfo();
+        break; 
     default:
         break;
     }

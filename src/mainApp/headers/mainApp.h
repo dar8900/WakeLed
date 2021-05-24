@@ -26,9 +26,23 @@ class WAKE_LED
             BACKLIGHT_TIME_SCREEN,
             METEO_INFO_SCREEN,
             SET_DISPLAY_BRIGHTNESS,
+            SYSTEM_INFO,
             SET_TIME_OFFLINE,
             SET_DATE_OFFLINE,
             MAX_SCREEN
+        };
+
+        enum
+        {
+            VERSION_SW = 0,
+            ALARM_SET,
+            PRE_ACC_TIME,
+            SNOOZE_TIME,
+            RESTART_TIME,
+            BACKLIGHT_TIME,
+            BRIGHTNESS,
+            WIFI_STATUS,
+            MAX_INFO
         };
 
         NHDST7565 *display;
@@ -67,6 +81,7 @@ class WAKE_LED
         void setOfflineDate();
         void setDisplayBrightness();
         void adjustAutoBrightness();
+        void showSystemInfo();
 
     public:
         WAKE_LED();
