@@ -46,9 +46,9 @@ class ALARM
         void getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute);
         void setAlarmTime(uint8_t AlarmHour, uint8_t AlarmMinute);
         void setSnoozeTime(uint16_t SnoozeTime = 5);
-        uint16_t getSnoozeTime();
+        uint16_t getSnoozeTime(); /* in minuti */
         void setReactiveAlarmTime(uint16_t ReactiveAlarmTime = 5);
-        uint16_t getReactiveAlarmTime();
+        uint16_t getReactiveAlarmTime(); /* in minuti */
         void runAlarm(uint32_t GlobalTimestamp);
         uint32_t getAlarmTimestamp();
 };
