@@ -1068,7 +1068,7 @@ void WAKE_LED::showSystemInfo()
     bool ExitShowSystemInfo = false;
     uint8_t Button = ROTARY::NO_ACTION;
     uint8_t ItemSel = oldMenuItem, TopItem = 0;
-    const uint8 MaxItemList = 4;
+    const uint8_t MaxItemList = 5;
     SystemInfoValues[VERSION_SW] = VERSION;
     SystemInfoValues[ALARM_SET] = wakeLedAlarm->isAlarmSet() ? "SI" : "NO";
     SystemInfoValues[PRE_ACC_TIME] = String(preAccensionTime).c_str();
@@ -1086,8 +1086,8 @@ void WAKE_LED::showSystemInfo()
             uint8_t NextItem = TopItem + MenuItem;
             if(NextItem >= MAX_INFO)
                 break;
-            display->drawString(9, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, SystemInfoVoices[NextItem]); 
-            display->drawString(NHDST7565::RIGHT_POS, 14 + (12 * MenuItem), NHDST7565::W_6_H_10, SystemInfoValues[NextItem]); 
+            display->drawString(9, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoVoices[NextItem]); 
+            display->drawString(100, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]); 
         }
         display->drawUnicodeChar(NHDST7565::LEFT_POS, 24, NHDST7565::W_8_H_8_ICON, 112);
         display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
@@ -1098,13 +1098,13 @@ void WAKE_LED::showSystemInfo()
         {
         case ROTARY::DECREMENT:
             if(ItemSel > 0)
-                ItemSel -= MAX_INFO / 2;
+                ItemSel--;
             else
                 ItemSel = MAX_INFO - 1;
             break;
         case ROTARY::INCREMENT:
             if(ItemSel < MAX_INFO - 1)
-                ItemSel += MAX_INFO / 2;
+                ItemSel++;
             else
                 ItemSel = 0;        
             break;
@@ -1227,6 +1227,7 @@ void WAKE_LED::run()
         break;     
     case SYSTEM_INFO:
         showSystemInfo();
+        wakeScreen = MENU_SCREEN;
         break; 
     default:
         break;
