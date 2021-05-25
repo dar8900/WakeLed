@@ -92,7 +92,7 @@ void WAKE_LED::adjustAutoBrightness()
 {
     if(displayBrightnessAuto)
     {
-        if(autoBrightnessTimer->hasPassed(300, true))
+        if(autoBrightnessTimer->hasPassed(60, true))
         {
             time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
             std::tm *locTime = std::localtime(&ts);
@@ -117,8 +117,7 @@ void WAKE_LED::adjustAutoBrightness()
     }
     else
     {
-        autoBrightnessTimer->stop();
-        autoBrightnessValue = display->DISPLAY_BRIGHTNESS_DFLT;
+        autoBrightnessTimer->restart();
     }
 }
 
