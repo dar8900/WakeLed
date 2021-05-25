@@ -137,14 +137,17 @@ void WAKE_LED::drawTopInfo()
     {
         display->drawUnicodeChar(NHDST7565::LEFT_POS, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 247);
     }
-    if(wakeLedAlarm->isAlarmSet())
+    if(wakeScreen == MAIN_SCREEN)
     {
-        display->drawUnicodeChar(50, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 93);
+        if(wakeLedAlarm->isAlarmSet())
+        {
+            display->drawUnicodeChar(50, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 93);
+        }
+        if(wakeLedAlarm->isAlarmActive())
+        {
+            display->drawUnicodeChar(22, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 84);
+        }    
     }
-    if(wakeLedAlarm->isAlarmActive())
-    {
-        display->drawUnicodeChar(22, NHDST7565::TOP_POS, NHDST7565::W_8_H_8_ICON, 84);
-    }    
     if(wakeScreen != MAIN_SCREEN)
     {
         display->drawString(NHDST7565::CENTER_POS , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, wifiStation->timeDateInfo.timeFormatted);
@@ -997,7 +1000,16 @@ void WAKE_LED::setDisplayBrightness()
 {
     bool ExitSetDisplayBrightness = false;
     uint8_t Button = ROTARY::NO_ACTION;
-    uint16_t Brightness = display->getDisplayLedBrightness();
+    const uint16_t AUTO_BRIGHTNESS_VALUE = 105;
+    uint16_t Brightness = 0;
+    if(displayBrightnessAuto)
+    {
+        Brightness = AUTO_BRIGHTNESS_VALUE;
+    }
+    else
+    {
+        Brightness = display->getDisplayLedBrightness();
+    }
     String BrighStr = "";
     while(!ExitSetDisplayBrightness)
     {
@@ -1007,7 +1019,7 @@ void WAKE_LED::setDisplayBrightness()
         {
             display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Disabilitato");
         }
-        else if(Brightness == 105)
+        else if(Brightness == AUTO_BRIGHTNESS_VALUE)
         {
             display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Auto");
         }
@@ -1027,10 +1039,10 @@ void WAKE_LED::setDisplayBrightness()
             if(Brightness > 0)
                 Brightness -= 5;
             else
-                Brightness = 105;
+                Brightness = AUTO_BRIGHTNESS_VALUE;
             break;
         case ROTARY::INCREMENT:
-            if(Brightness < 105)
+            if(Brightness < AUTO_BRIGHTNESS_VALUE)
                 Brightness += 5;
             else
                 Brightness = 0;
@@ -1066,8 +1078,9 @@ void WAKE_LED::showSystemInfo()
 {
     bool ExitShowSystemInfo = false;
     uint8_t Button = ROTARY::NO_ACTION;
-    uint8_t ItemSel = oldMenuItem, TopItem = 0;
+    uint8_t NPage = 0, TopItem = 0;
     const uint8_t MaxItemList = 5;
+    uint8_t MaxPages = MAX_INFO / MaxItemList;
     SystemInfoValues[VERSION_SW] = VERSION;
     SystemInfoValues[ALARM_SET] = wakeLedAlarm->isAlarmSet() ? "SI" : "NO";
     SystemInfoValues[PRE_ACC_TIME] = String(preAccensionTime).c_str();
@@ -1088,24 +1101,31 @@ void WAKE_LED::showSystemInfo()
             display->drawString(9, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoVoices[NextItem]); 
             display->drawString(100, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]); 
         }
-        display->drawUnicodeChar(NHDST7565::LEFT_POS, 24, NHDST7565::W_8_H_8_ICON, 112);
-        display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
+        if(NPage == 0)
+            display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
+        else if(NPage == MaxPages)
+            display->drawUnicodeChar(NHDST7565::LEFT_POS, 24, NHDST7565::W_8_H_8_ICON, 112);
+        else
+        {
+            display->drawUnicodeChar(NHDST7565::LEFT_POS, 24, NHDST7565::W_8_H_8_ICON, 112);
+            display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
+        }
         display->sendBuff();
         backGroundTasks();
         Button = rotary->getRotaryState();
         switch (Button)
         {
         case ROTARY::DECREMENT:
-            if(ItemSel > 0)
-                ItemSel--;
-            else
-                ItemSel = MAX_INFO - 1;
+            if(NPage > 0)
+            {
+                NPage--;
+            }
             break;
         case ROTARY::INCREMENT:
-            if(ItemSel < MAX_INFO - 1)
-                ItemSel++;
-            else
-                ItemSel = 0;        
+            if(NPage < MaxPages)
+            {
+                NPage++;
+            }      
             break;
         case ROTARY::BUTTON_PRESS:
         case ROTARY::LONG_BUTTON_PRESS:
@@ -1118,14 +1138,7 @@ void WAKE_LED::showSystemInfo()
         {
             display->restartDisplayLedTimer();
         }
-        if(ItemSel >= MaxItemList - 1)
-        {
-            TopItem = ItemSel - (MaxItemList - 1);
-        }
-        else
-        {
-            TopItem = 0;
-        }
+        TopItem = MaxItemList * NPage;
         delay(1);
     }
 }
@@ -1172,6 +1185,7 @@ void WAKE_LED::init()
     delay(1000);
     display->clearDisplay();
     display->restartDisplayLedTimer();
+    displayBrightnessAuto = true;
 }
 
 
