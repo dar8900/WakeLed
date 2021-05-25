@@ -306,6 +306,13 @@ void NHDST7565::setDisplayLedBrightness(uint8_t Brightness)
 {
 	if(Brightness >= 0 && Brightness <= 100)
 	{
+		if(Brightness % 5 != 0)
+		{
+			if(Brightness % 5 > 2)
+				Brightness = 5;
+			else
+				Brightness = 0;
+		}
 		displayLedPwmValue = (LEDS::PWM_RANGE * Brightness) / 100;
 	}
 	else
@@ -318,5 +325,12 @@ uint8_t NHDST7565::getDisplayLedBrightness()
 {
 	uint8_t BrightnessPercent = 0;
 	BrightnessPercent = (displayLedPwmValue * 100) / LEDS::PWM_RANGE;
+	if(BrightnessPercent % 5 != 0)
+	{
+		if(BrightnessPercent % 5 > 2)
+			BrightnessPercent = 5;
+		else
+			BrightnessPercent = 0;
+	}
 	return BrightnessPercent;
 }
