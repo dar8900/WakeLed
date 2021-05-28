@@ -96,7 +96,7 @@ void WAKE_LED::adjustAutoBrightness()
         {
             time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
             std::tm *locTime = std::localtime(&ts);
-            if(locTime->tm_hour >= 22 && locTime->tm_hour < 9)
+            if(locTime->tm_hour >= 22 || locTime->tm_hour < 9)
             {
                 autoBrightnessValue = 5;
             }
