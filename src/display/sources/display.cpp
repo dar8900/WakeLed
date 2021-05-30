@@ -302,7 +302,7 @@ void NHDST7565::manualSwitchLedDisplay(bool Status)
 	}
 }
 
-void NHDST7565::setDisplayLedBrightness(uint8_t Brightness)
+void NHDST7565::setDisplayLedBrightness(int Brightness)
 {
 	if(Brightness >= 0 && Brightness <= 100)
 	{
@@ -321,7 +321,7 @@ void NHDST7565::setDisplayLedBrightness(uint8_t Brightness)
 	}
 }
 
-uint8_t NHDST7565::getDisplayLedBrightness()
+int NHDST7565::getDisplayLedBrightness()
 {
 	uint8_t BrightnessPercent = 0;
 	BrightnessPercent = (displayLedPwmValue * 100) / LEDS::PWM_RANGE;

@@ -20,7 +20,7 @@ LEDS::LEDS(uint8_t Pin, uint8_t Mode)
 
 }
 
-void LEDS::writePwm(uint16_t DutyCycle)
+void LEDS::writePwm(int DutyCycle)
 {
     if(pinModality == PWM && (DutyCycle >= 0 && DutyCycle <= PWM_RANGE))
     {
