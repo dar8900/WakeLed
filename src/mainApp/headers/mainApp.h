@@ -9,7 +9,8 @@
 #include "../../led/headers/led.h"
 #include "../../ir_sensor/headers/ir_sensor.h"
 #include "../../version.h"
-// #include "../../eeprom/headers/eeprom_esp.h"
+
+#define TO_RAD(grad)    (grad * (M_PI / 180.0))
 
 class WAKE_LED
 {
@@ -53,7 +54,7 @@ class WAKE_LED
         SENSOR *irSensor;
         Chrono *preAccensionTimer;
         Chrono *autoBrightnessTimer;
-        uint8_t autoBrightnessValue;
+        int autoBrightnessValue;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 5; // In minuti
         uint16_t accensionLedPwmIncrement = 0;

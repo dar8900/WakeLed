@@ -94,23 +94,19 @@ void WAKE_LED::adjustAutoBrightness()
     {
         if(autoBrightnessTimer->hasPassed(60, true))
         {
+            double Bright = 0.0;
+            const int InitHour = 6;
+            const int EndHour = 23;
             time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
             std::tm *locTime = std::localtime(&ts);
-            if(locTime->tm_hour >= 22 || locTime->tm_hour < 9)
+            if(locTime->tm_hour >= InitHour && locTime->tm_hour <= EndHour)
             {
-                autoBrightnessValue = 5;
+                Bright = 100.0 * sin(TO_RAD((180.0 / (double)(EndHour - InitHour)) * (double)(locTime->tm_hour - InitHour)));
+                autoBrightnessValue = (int)round(Bright);
             }
-            else if(locTime->tm_hour >= 11 && locTime->tm_hour < 17)        
+            else
             {
-                autoBrightnessValue = 100;
-            }
-            else if(locTime->tm_hour >= 9 && locTime->tm_hour < 11)    
-            {
-                autoBrightnessValue = 50;
-            }
-            else if(locTime->tm_hour >= 17 && locTime->tm_hour < 22)    
-            {
-                autoBrightnessValue = 25;
+                autoBrightnessValue = 0;
             }
             display->setDisplayLedBrightness(autoBrightnessValue);
         }
