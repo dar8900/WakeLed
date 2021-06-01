@@ -273,18 +273,6 @@ void NHDST7565::displayLedManage()
 	{
 		displayLedTurnoffTimer->stop();
 	}
-	// if(oldDisplayLedPwmValue != displayLedPwmValue)
-	// {
-	// 	oldDisplayLedPwmValue = displayLedPwmValue;
-	// 	if(displayLedPwmValue == 0)
-	// 	{
-	// 		displayLed->writeDigital(OFF);
-	// 	}
-	// 	else
-	// 	{
-	// 		displayLed->writePwm(displayLedPwmValue);
-	// 	}
-	// }
 }
 
 void NHDST7565::manualSwitchLedDisplay(bool Status)
@@ -314,6 +302,8 @@ void NHDST7565::setDisplayLedBrightness(int Brightness)
 			else
 				NewBright = Brightness - (Brightness % 5);
 		} 
+		else
+			NewBright = Brightness;
 		displayLedPwmValue = (LEDS::PWM_RANGE * NewBright) / 100;
 	}
 	else
@@ -329,10 +319,12 @@ int NHDST7565::getDisplayLedBrightness()
 	BrightnessPercent = (displayLedPwmValue * 100) / LEDS::PWM_RANGE;
 	if(BrightnessPercent % 5 != 0)
 	{
-		if(BrightnessPercent % 5 > 2)
+		if(BrightnessPercent % 5 >= 2)
 			NewBrightPercent = BrightnessPercent + (5 - (BrightnessPercent % 5));
 		else
 			NewBrightPercent = BrightnessPercent - (BrightnessPercent % 5);
 	}
+	else
+		NewBrightPercent = BrightnessPercent;
 	return NewBrightPercent;
 }
