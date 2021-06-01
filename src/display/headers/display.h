@@ -5,6 +5,7 @@
 #include "../../led/headers/led.h"
 #include <Chrono.h>
 #include <string>
+#include "../../debug/headers/debug.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
