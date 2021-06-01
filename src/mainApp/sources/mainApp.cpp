@@ -92,7 +92,7 @@ void WAKE_LED::adjustAutoBrightness()
 {
     if(displayBrightnessAuto)
     {
-        if(autoBrightnessTimer->hasPassed(5, true))
+        if(autoBrightnessTimer->hasPassed(60, true))
         {
             double Bright = 0.0;
             const int InitHour = 6;
