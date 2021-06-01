@@ -104,7 +104,7 @@ class NHDST7565
         uint8_t setTextTop();
         uint8_t setTextMiddle();
         uint8_t setTextBottom();
-        uint16_t displayLedTurnoffTime = 10; // in secondi
+        uint16_t displayLedTurnoffTime = 5; // in secondi
         uint16_t displayLedPwmValue = 0;
         uint16_t oldDisplayLedPwmValue = 0;
         
