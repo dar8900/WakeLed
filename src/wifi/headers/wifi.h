@@ -34,6 +34,9 @@ class WIFI_STATION
         time_t epochTimestamp = 1609459200;
         bool legalHourIsSetted = false;
         bool initWeather = true;
+        WifiString selectedSSID = "";
+        WifiString selectedPasswd = "";
+        void searchWifiSsid();
         void connectToWifi();
         void weatherHttpJson();
         void getWeatherInfo(bool TakeInfoNow);

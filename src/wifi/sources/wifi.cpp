@@ -12,17 +12,62 @@ WIFI_STATION::WIFI_STATION()
     takeTimeBackUp = new Chrono(Chrono::MILLIS);
 }
 
+void WIFI_STATION::searchWifiSsid()
+{
+    const uint32_t SCAN_PERIOD = 5000;
+    uint32_t currentMillis = millis();
+    uint32_t lastScanMillis = 0;
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    // Wi-Fi network scan
+    while (currentMillis - lastScanMillis > SCAN_PERIOD)
+    {
+        WiFi.scanNetworks(true);
+        WakeledDebug.writeDebugString("Scansione wifi iniziata...", __FUNCTION__);
+        lastScanMillis = currentMillis;
+        currentMillis = millis();
+    }
+
+    // print out Wi-Fi network scan result uppon completion
+    int N_SSID = WiFi.scanComplete();
+    if(N_SSID >= 0)
+    {
+        bool FoundWifi = false;
+        WakeledDebug.writeDebugString("Trovate ", __FUNCTION__, false);
+        WakeledDebug.writeDebugString(DebugString(N_SSID) + " reti");
+        for(int j = 0; j < N_SSID; j++)
+        {
+            for (int i = 0; i < MAX_WIFI_SSID; i++)
+            {
+                if(WiFi.SSID(j) == SSIDS[i])
+                {
+                    FoundWifi = true;
+                    selectedSSID = SSIDS[i];
+                    selectedPasswd = PASSWDS[i];
+                    break;
+                }
+            }
+            if(FoundWifi)
+            {
+                break;
+            }
+        }
+        if(!FoundWifi)
+        {
+            selectedSSID = "";
+            selectedPasswd = "";
+        }
+        WiFi.scanDelete();
+    }
+}
+
 void WIFI_STATION::connectToWifi()
 {
     uint16_t Timeout = 80;
     bool WifiConnected = false;
-    if(WakeledDebug.jumpWifiConn)
+    if(selectedSSID.length() > 0 && selectedPasswd.length() > 0)
     {
-        WakeledDebug.writeDebugString("Connessione skippata", __FUNCTION__);
-    }
-    else
-    {
-        WiFi.begin(SSID, PASSWD);
+        WiFi.begin(selectedSSID.c_str(), selectedPasswd.c_str());
         WakeledDebug.writeDebugString("Connessione in corso...", __FUNCTION__);
         while(!WifiConnected && Timeout > 0)
         {
