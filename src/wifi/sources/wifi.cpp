@@ -65,6 +65,7 @@ void WIFI_STATION::connectToWifi()
 {
     uint16_t Timeout = 80;
     bool WifiConnected = false;
+    searchWifiSsid();
     if(selectedSSID.length() > 0 && selectedPasswd.length() > 0)
     {
         WiFi.begin(selectedSSID.c_str(), selectedPasswd.c_str());
