@@ -487,9 +487,9 @@ void WAKE_LED::alarmScreen()
             else
             {
                 if(AlarmiMinute > 0)
-                    AlarmiMinute--;
+                    AlarmiMinute -= 5;
                 else
-                    AlarmiMinute = 59;
+                    AlarmiMinute = 55;
             }
             break;
         case ROTARY::INCREMENT:
@@ -502,8 +502,8 @@ void WAKE_LED::alarmScreen()
             }
             else
             {
-                if(AlarmiMinute < 59)
-                    AlarmiMinute++;
+                if(AlarmiMinute < 55)
+                    AlarmiMinute += 5;
                 else
                     AlarmiMinute = 0;
             }
@@ -567,13 +567,13 @@ void WAKE_LED::preLedAccension()
         {
         case ROTARY::DECREMENT:
             if(Accension > 0)
-                Accension--;
+                Accension -= 5;
             else
                 Accension = 30;
             break;
         case ROTARY::INCREMENT:
             if(Accension < 30)
-                Accension++;
+                Accension += 5;
             else
                 Accension = 0;
             break;
@@ -613,16 +613,16 @@ void WAKE_LED::snoozeTime()
         switch (Button)
         {
         case ROTARY::DECREMENT:
-            if(SnoozeTime > 1)
-                SnoozeTime--;
+            if(SnoozeTime > 5)
+                SnoozeTime -= 5;
             else
                 SnoozeTime = 30;
             break;
         case ROTARY::INCREMENT:
             if(SnoozeTime < 30)
-                SnoozeTime++;
+                SnoozeTime += 5;
             else
-                SnoozeTime = 1;
+                SnoozeTime = 5;
             break;
         case ROTARY::BUTTON_PRESS:
             wakeLedAlarm->setSnoozeTime(SnoozeTime);
@@ -660,16 +660,16 @@ void WAKE_LED::reactiveAlarmTime()
         switch (Button)
         {
         case ROTARY::DECREMENT:
-            if(ReactiveAlarmTime > 1)
-                ReactiveAlarmTime--;
+            if(ReactiveAlarmTime > 5)
+                ReactiveAlarmTime -= 5;
             else
                 ReactiveAlarmTime = 30;
             break;
         case ROTARY::INCREMENT:
             if(ReactiveAlarmTime < 30)
-                ReactiveAlarmTime++;
+                ReactiveAlarmTime += 5;
             else
-                ReactiveAlarmTime = 1;
+                ReactiveAlarmTime = 5;
             break;
         case ROTARY::BUTTON_PRESS:
             wakeLedAlarm->setReactiveAlarmTime(ReactiveAlarmTime);
