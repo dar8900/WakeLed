@@ -517,7 +517,7 @@ void WAKE_LED::alarmScreen()
             {
                 wakeLedAlarm->setAlarmTime(AlarmHour, AlarmiMinute);
                 wakeLedAlarm->setAlarm();
-                display->drawPopUp("Allarme impostato", 1500);
+                display->drawPopUp("Allarme impostato", display->POPUP_TIME_DFLT);
                 ExitSetAlarm = true;
             }
             break;
@@ -578,7 +578,7 @@ void WAKE_LED::preLedAccension()
                 Accension = 0;
             break;
         case ROTARY::BUTTON_PRESS:
-            display->drawPopUp("Accensione impostata", 1500);
+            display->drawPopUp("Accensione impostata", display->POPUP_TIME_DFLT);
             preAccensionTime = Accension;
             ExitPreAccensionSet = true;
             break;
@@ -626,7 +626,7 @@ void WAKE_LED::snoozeTime()
             break;
         case ROTARY::BUTTON_PRESS:
             wakeLedAlarm->setSnoozeTime(SnoozeTime);
-            display->drawPopUp("Snooze impostato", 1500);
+            display->drawPopUp("Snooze impostato", display->POPUP_TIME_DFLT);
             ExitSnoozeSet = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
@@ -673,7 +673,7 @@ void WAKE_LED::reactiveAlarmTime()
             break;
         case ROTARY::BUTTON_PRESS:
             wakeLedAlarm->setReactiveAlarmTime(ReactiveAlarmTime);
-            display->drawPopUp("Riattivo impostato", 1500);
+            display->drawPopUp("Riattivo impostato", display->POPUP_TIME_DFLT);
             ExitReactiveAlarmSet = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
@@ -770,7 +770,7 @@ void WAKE_LED::backlightTime()
         case ROTARY::BUTTON_PRESS:
             display->setDisplayLedTurnoffTime(BacklightTime);
             display->restartDisplayLedTimer();
-            display->drawPopUp("Backlight impostata", 1500);
+            display->drawPopUp("Backlight impostata", display->POPUP_TIME_DFLT);
             ExitBacklightTime = true;
             break;
         case ROTARY::LONG_BUTTON_PRESS:
@@ -851,7 +851,7 @@ void WAKE_LED::setOfflineTime()
             }
             else
             {
-                display->drawPopUp("Ora impostata", 1500);
+                display->drawPopUp("Ora impostata", display->POPUP_TIME_DFLT);
                 wifiStation->setOfflineTime(Hour, Minute);
                 ExitSetTime = true;
             }
@@ -955,7 +955,7 @@ void WAKE_LED::setOfflineDate()
             if(WichChange == DAY)
             {
                 wifiStation->setOfflineDate(Day, Month, Year);
-                display->drawPopUp("Data impostata", 1500);
+                display->drawPopUp("Data impostata", display->POPUP_TIME_DFLT);
                 ExitSetDate = true;
             }
             else if(WichChange == MONTH)
@@ -1044,7 +1044,7 @@ void WAKE_LED::setDisplayBrightness()
                 Brightness = 0;
             break;
         case ROTARY::BUTTON_PRESS:
-            display->drawPopUp("Luminosita impostata", 1500);
+            display->drawPopUp("Luminosita impostata", display->POPUP_TIME_DFLT);
             if(Brightness >= 0 && Brightness <= 100)
             {
                 display->setDisplayLedBrightness(Brightness);
@@ -1158,7 +1158,7 @@ void WAKE_LED::init()
     display->manualManageDisplayLed = true;
 	display->manualSwitchLedDisplay(ON);
 	display->manualManageDisplayLed = false;
-    display->drawPopUp("Home Microtech", 1500);
+    display->drawPopUp("Home Microtech", display->POPUP_TIME_DFLT);
     display->clearBuff();
     display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_6_H_13_B, "Collegamento");
     display->drawString(NHDST7565::CENTER_POS, 42, NHDST7565::W_6_H_13_B, "al wifi...");
