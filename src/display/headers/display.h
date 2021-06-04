@@ -60,7 +60,8 @@ class NHDST7565
 	
         static const uint8_t DISPLAY_WIDTH = 128;
         static const uint8_t DISPLAY_HIGH = 64;
-        static const uint8_t DISPLAY_BRIGHTNESS_DFLT = 50;
+        static const uint8_t DISPLAY_BRIGHTNESS_DFLT = 50; // in %
+        static const uint16_t DISPLAY_TURNOFF_TIME_DFLT = 5; // in secondi
         LEDS *displayLed;
         Chrono *displayLedTurnoffTimer;
         bool manualManageDisplayLed = false;
@@ -104,9 +105,8 @@ class NHDST7565
         uint8_t setTextTop();
         uint8_t setTextMiddle();
         uint8_t setTextBottom();
-        uint16_t displayLedTurnoffTime = 5; // in secondi
+        uint16_t displayLedTurnoffTime = DISPLAY_TURNOFF_TIME_DFLT; // in secondi
         uint16_t displayLedPwmValue = 0;
-        uint16_t oldDisplayLedPwmValue = 0;
         
         void setTextParams(DispString Text, uint8_t Font);
         void setCoordinates(uint8_t OldXPos, uint8_t OldYPos, uint8_t &NewXPos, uint8_t &NewYPos);
