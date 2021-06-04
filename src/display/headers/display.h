@@ -62,6 +62,7 @@ class NHDST7565
         static const uint8_t DISPLAY_HIGH = 64;
         static const uint8_t DISPLAY_BRIGHTNESS_DFLT = 50; // in %
         static const uint16_t DISPLAY_TURNOFF_TIME_DFLT = 5; // in secondi
+        static const uint16_t POPUP_TIME_DFLT = 1500; // in ms
         LEDS *displayLed;
         Chrono *displayLedTurnoffTimer;
         bool manualManageDisplayLed = false;
