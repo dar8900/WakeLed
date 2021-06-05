@@ -14,27 +14,19 @@ WIFI_STATION::WIFI_STATION()
 
 void WIFI_STATION::searchWifiSsid()
 {
-    const uint32_t SCAN_PERIOD = 5000;
-    uint32_t currentMillis = millis();
-    uint32_t lastScanMillis = 0;
+    const uint32_t SCAN_PERIOD = 10000;
+    uint32_t ScanTime = 0;
+    WakeledDebug.writeDebugString("Ora scansiono le reti wifi", __FUNCTION__);
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
-    // Wi-Fi network scan
-    while (currentMillis - lastScanMillis > SCAN_PERIOD)
-    {
-        WiFi.scanNetworks(true);
-        WakeledDebug.writeDebugString("Scansione wifi iniziata...", __FUNCTION__);
-        lastScanMillis = currentMillis;
-        currentMillis = millis();
-    }
+    WiFi.scanNetworks();
 
     // print out Wi-Fi network scan result uppon completion
     int N_SSID = WiFi.scanComplete();
     if(N_SSID >= 0)
     {
         bool FoundWifi = false;
-        WakeledDebug.writeDebugString("Trovate ", __FUNCTION__, false);
-        WakeledDebug.writeDebugString(DebugString(N_SSID) + " reti");
+        WakeledDebug.writeDebugString("Trovate " + DebugString(N_SSID) + " reti", __FUNCTION__, true);
         for(int j = 0; j < N_SSID; j++)
         {
             for (int i = 0; i < MAX_WIFI_SSID; i++)
@@ -58,6 +50,10 @@ void WIFI_STATION::searchWifiSsid()
             selectedPasswd = "";
         }
         WiFi.scanDelete();
+    }
+    else
+    {
+        WakeledDebug.writeDebugString("Nessuna rete wifi trovata", __FUNCTION__, false);
     }
 }
 
@@ -84,7 +80,7 @@ void WIFI_STATION::connectToWifi()
         }
         if(WifiConnected)
         {
-            WakeledDebug.writeDebugString("Connessione riuscita", __FUNCTION__);
+            WakeledDebug.writeDebugString("Connesso all rete " + selectedSSID, __FUNCTION__);
         }
         else
         {
