@@ -12,17 +12,59 @@ WIFI_STATION::WIFI_STATION()
     takeTimeBackUp = new Chrono(Chrono::MILLIS);
 }
 
+void WIFI_STATION::searchWifiSsid()
+{
+    const uint32_t SCAN_PERIOD = 10000;
+    uint32_t ScanTime = 0;
+    WakeledDebug.writeDebugString("Ora scansiono le reti wifi", __FUNCTION__);
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    WiFi.scanNetworks();
+
+    // print out Wi-Fi network scan result uppon completion
+    int N_SSID = WiFi.scanComplete();
+    if(N_SSID >= 0)
+    {
+        bool FoundWifi = false;
+        WakeledDebug.writeDebugString("Trovate " + DebugString(N_SSID) + " reti", __FUNCTION__, true);
+        for(int j = 0; j < N_SSID; j++)
+        {
+            for (int i = 0; i < MAX_WIFI_SSID; i++)
+            {
+                if(WiFi.SSID(j) == SSIDS[i])
+                {
+                    FoundWifi = true;
+                    selectedSSID = SSIDS[i];
+                    selectedPasswd = PASSWDS[i];
+                    break;
+                }
+            }
+            if(FoundWifi)
+            {
+                break;
+            }
+        }
+        if(!FoundWifi)
+        {
+            selectedSSID = "";
+            selectedPasswd = "";
+        }
+        WiFi.scanDelete();
+    }
+    else
+    {
+        WakeledDebug.writeDebugString("Nessuna rete wifi trovata", __FUNCTION__, false);
+    }
+}
+
 void WIFI_STATION::connectToWifi()
 {
     uint16_t Timeout = 80;
     bool WifiConnected = false;
-    if(WakeledDebug.jumpWifiConn)
+    searchWifiSsid();
+    if(selectedSSID.length() > 0 && selectedPasswd.length() > 0)
     {
-        WakeledDebug.writeDebugString("Connessione skippata", __FUNCTION__);
-    }
-    else
-    {
-        WiFi.begin(SSID, PASSWD);
+        WiFi.begin(selectedSSID.c_str(), selectedPasswd.c_str());
         WakeledDebug.writeDebugString("Connessione in corso...", __FUNCTION__);
         while(!WifiConnected && Timeout > 0)
         {
@@ -38,7 +80,7 @@ void WIFI_STATION::connectToWifi()
         }
         if(WifiConnected)
         {
-            WakeledDebug.writeDebugString("Connessione riuscita", __FUNCTION__);
+            WakeledDebug.writeDebugString("Connesso all rete " + selectedSSID, __FUNCTION__);
         }
         else
         {
