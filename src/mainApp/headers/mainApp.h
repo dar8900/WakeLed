@@ -43,6 +43,7 @@ class WAKE_LED
             BACKLIGHT_TIME,
             BRIGHTNESS,
             WIFI_STATUS,
+            UP_TIME,
             MAX_INFO
         };
 
@@ -54,6 +55,7 @@ class WAKE_LED
         SENSOR *irSensor;
         Chrono *preAccensionTimer;
         Chrono *autoBrightnessTimer;
+        Chrono *upTimeTimer;
         int autoBrightnessValue;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 5; // In minuti
@@ -62,8 +64,11 @@ class WAKE_LED
         uint8_t oldMenuItem = 0;
         bool alarmLedManual = false;
         bool displayBrightnessAuto = false;
+        uint32_t upTime = 0;
         
         void manageAlarmLed();
+        void adjustAutoBrightness();
+        String getUpTimeStr();
         void backGroundTasks();
         void drawTopInfo();
         void drawWeatherInfo();
@@ -81,7 +86,6 @@ class WAKE_LED
         void setOfflineTime();
         void setOfflineDate();
         void setDisplayBrightness();
-        void adjustAutoBrightness();
         void showSystemInfo();
 
     public:

@@ -6,7 +6,9 @@
 #define MAX_MENU_VOICES_ONLINE  8
 #define MAX_MENU_VOICES_OFFLINE (MAX_MENU_VOICES_ONLINE + 2)
 
-#define MAX_SYSTEM_INFO_VOICES  8
+#define MAX_SYSTEM_INFO_VOICES  9
+
+#define SECONDS_IN_YEAR 31536000
 
 #define TO_RADIANTS(angle)  (DEG_TO_RAD * angle)
 
@@ -46,6 +48,7 @@ DispString SystemInfoVoices[MAX_SYSTEM_INFO_VOICES] =
     "Tempo backlight (s)",
     "Luminosita (%)",
     "Connessione wifi",
+    "Up-time",
 };
 
 DispString SystemInfoValues[MAX_SYSTEM_INFO_VOICES];
@@ -117,6 +120,39 @@ void WAKE_LED::adjustAutoBrightness()
     }
 }
 
+String WAKE_LED::getUpTimeStr()
+{
+    String UptimeStr = "";
+    uint8_t Seconds = 0, Minute = 0, Hour = 0, Days = 0;
+    Seconds = upTime % 60;
+    Minute = upTime / 60;
+    Hour = upTime / 3600;
+    Days = upTime / 86400;
+    if(Days == 0 && Hour == 0 && Minute == 0)
+    {
+        UptimeStr = (Seconds < 10 ? "0" + String(Seconds) : String(Seconds)) + "s";
+    }
+    else if (Days == 0 && Hour == 0)
+    {
+        UptimeStr = (Minute < 10 ? "0" + String(Minute) : String(Minute)) + "m";
+        UptimeStr += (Seconds < 10 ? "0" + String(Seconds) : String(Seconds)) + "s";
+    }
+    else if (Days == 0)
+    {
+        UptimeStr = (Hour < 10 ? "0" + String(Hour) : String(Hour)) + "h";
+        UptimeStr += (Minute < 10 ? "0" + String(Minute) : String(Minute)) + "m";
+        UptimeStr += (Seconds < 10 ? "0" + String(Seconds) : String(Seconds)) + "s";
+    }
+    else
+    {
+        UptimeStr = String(Days) + "d";
+        UptimeStr += (Hour < 10 ? "0" + String(Hour) : String(Hour)) + "h";
+        UptimeStr += (Minute < 10 ? "0" + String(Minute) : String(Minute)) + "m";
+        UptimeStr += (Seconds < 10 ? "0" + String(Seconds) : String(Seconds)) + "s"; 
+    }
+    return UptimeStr;   
+}
+
 void WAKE_LED::backGroundTasks()
 {
     wifiStation->run();
@@ -125,6 +161,14 @@ void WAKE_LED::backGroundTasks()
     display->displayLedManage();
     irSensor->readSensor();
     adjustAutoBrightness();
+    if(upTimeTimer->hasPassed(1, true))
+    {
+        upTime++;
+        if(upTime > SECONDS_IN_YEAR)
+        {
+            upTime = 0;
+        }
+    }
 }
 
 void WAKE_LED::drawTopInfo()
@@ -1085,8 +1129,10 @@ void WAKE_LED::showSystemInfo()
     SystemInfoValues[BACKLIGHT_TIME] = String(display->getDisplayLedTurnoffTime()).c_str();
     SystemInfoValues[BRIGHTNESS] = String(display->getDisplayLedBrightness()).c_str();
     SystemInfoValues[WIFI_STATUS] = wifiStation->isWifiConnected() ? "SI" : "NO";
+    SystemInfoValues[UP_TIME] = getUpTimeStr().c_str();
     while(!ExitShowSystemInfo)
     {
+        SystemInfoValues[UP_TIME] = getUpTimeStr().c_str();
         display->clearBuff();
         drawTopInfo();
         for(int MenuItem = 0; MenuItem < MaxItemList; MenuItem++)
@@ -1095,7 +1141,14 @@ void WAKE_LED::showSystemInfo()
             if(NextItem >= MAX_INFO)
                 break;
             display->drawString(9, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoVoices[NextItem]); 
-            display->drawString(100, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]); 
+            if(NextItem != UP_TIME)
+            {
+                display->drawString(100, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]); 
+            }
+            else
+            {
+                display->drawString(65, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]);
+            }
         }
         if(NPage == 0)
             display->drawUnicodeChar(NHDST7565::LEFT_POS, 40, NHDST7565::W_8_H_8_ICON, 109);
@@ -1149,6 +1202,7 @@ WAKE_LED::WAKE_LED()
     irSensor = new SENSOR();
     preAccensionTimer = new Chrono(Chrono::SECONDS, false);
     autoBrightnessTimer = new Chrono(Chrono::SECONDS, false);
+    upTimeTimer = new Chrono(Chrono::SECONDS);
     autoBrightnessTimer->restart();
 }
 
