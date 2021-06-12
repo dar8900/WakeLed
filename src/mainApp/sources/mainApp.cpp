@@ -125,8 +125,8 @@ String WAKE_LED::getUpTimeStr()
     String UptimeStr = "";
     uint8_t Seconds = 0, Minute = 0, Hour = 0, Days = 0;
     Seconds = upTime % 60;
-    Minute = upTime / 60;
-    Hour = upTime / 3600;
+    Minute = (upTime / 60) % 60;
+    Hour = (upTime / 3600) % 24;
     Days = upTime / 86400;
     if(Days == 0 && Hour == 0 && Minute == 0)
     {
