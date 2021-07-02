@@ -19,6 +19,7 @@ DispString menuVoicesOnline[MAX_MENU_VOICES_ONLINE] =
     "Imposta snooze all.",
     "Imposta riavvio all.",
     "Tempo backlight",
+    "Ore backlight",
     "Info meteo",
     "Luminosita display",
     "Info sistema",
@@ -31,6 +32,7 @@ DispString menuVoicesOffline[MAX_MENU_VOICES_OFFLINE] =
     "Imposta snooze all.",
     "Imposta riavvio all.",
     "Tempo backlight",
+    "Ore backlight",
     "Info meteo",
     "Luminosita display",
     "Info sistema",
@@ -98,13 +100,13 @@ void WAKE_LED::adjustAutoBrightness()
         if(autoBrightnessTimer->hasPassed(60, true))
         {
             double Bright = 0.0;
-            const int InitHour = 6;
-            const int EndHour = 23;
+            // const int InitHour = 6;
+            // const int EndHour = 23;
             time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
             std::tm *locTime = std::localtime(&ts);
-            if(locTime->tm_hour >= InitHour && locTime->tm_hour <= EndHour)
+            if(locTime->tm_hour >= display->backlightInitHour && locTime->tm_hour <= display->backlightEndHour)
             {
-                Bright = 100.0 * sin(TO_RAD((180.0 / (double)(EndHour - InitHour)) * (double)(locTime->tm_hour - InitHour)));
+                Bright = 100.0 * sin(TO_RAD((180.0 / (double)(display->backlightEndHour - display->backlightInitHour)) * (double)(locTime->tm_hour - display->backlightInitHour)));
                 autoBrightnessValue = (int)round(Bright);
             }
             else
@@ -1192,6 +1194,119 @@ void WAKE_LED::showSystemInfo()
     }
 }
 
+void WAKE_LED::setBacklightInitEndHour()
+{
+    bool ExitSetBacklightInitEndHour = false;
+    uint8_t Button = ROTARY::NO_ACTION;
+    uint16_t ReactiveAlarmTime = wakeLedAlarm->getReactiveAlarmTime();
+    bool ShiftHour = true;
+    int InitHour = 0, EndHour = 0;
+    uint16_t ExitAutoTimer = 0;
+    while(!ExitSetBacklightInitEndHour)
+    {
+        display->clearBuff();
+        drawTopInfo();
+        if(displayBrightnessAuto)
+        {
+            if(ShiftHour)
+            {
+                display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(InitHour).c_str()));
+                display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Ora inizio backlight");
+            }
+            else
+            {
+                display->drawString(NHDST7565::CENTER_POS, NHDST7565::MIDDLE_POS, NHDST7565::W_17_H_29, DispString(String(EndHour).c_str()));
+                display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_5_H_8, "Ora fine backlight");
+            }
+        }
+        else
+        {
+            display->drawString(NHDST7565::CENTER_POS, 25, NHDST7565::W_6_H_13_B, "Backlight");
+            display->drawString(NHDST7565::CENTER_POS, 50, NHDST7565::W_6_H_13_B, "non automatica");
+        }
+
+        display->sendBuff();
+        backGroundTasks();
+        Button = rotary->getRotaryState();
+        if(displayBrightnessAuto)
+        {
+            switch (Button)
+            {
+            case ROTARY::DECREMENT:
+                if(ShiftHour)
+                {
+                    if(InitHour > 0)
+                        InitHour--;
+                    else
+                        InitHour = 22;
+                }
+                else
+                {
+                    if(EndHour > 1)
+                        EndHour--;
+                    else
+                        EndHour = 23;
+                }
+                break;
+            case ROTARY::INCREMENT:
+                if(ShiftHour)
+                {
+                    if(InitHour < 22)
+                        InitHour++;
+                    else
+                        InitHour = 0;
+                }
+                else
+                {
+                    if(EndHour < 23)
+                        EndHour++;
+                    else
+                        EndHour = 1;
+                }
+                break;
+            case ROTARY::BUTTON_PRESS:
+				if(ShiftHour)
+				{
+					ShiftHour = false;
+				}
+				else
+				{
+					display->backlightInitHour = InitHour;
+					display->backlightEndHour = EndHour;
+					display->drawPopUp("Ore impostate", display->POPUP_TIME_DFLT);
+					ExitSetBacklightInitEndHour = true;
+				}
+                break;
+            case ROTARY::LONG_BUTTON_PRESS:
+				if(ShiftHour)
+				{
+					ExitSetBacklightInitEndHour = true;
+				}
+				else
+				{
+					ShiftHour = true;
+				}
+                break;
+            default:
+                break;
+            }
+        }
+        else
+        {
+            ExitAutoTimer++;
+            if(ExitAutoTimer == 2500)
+            {
+                ExitSetBacklightInitEndHour = true;
+            }
+        }
+        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        {
+            display->restartDisplayLedTimer();
+        }        
+        delay(1);
+    }   
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -1293,6 +1408,10 @@ void WAKE_LED::run()
         showSystemInfo();
         wakeScreen = MENU_SCREEN;
         break; 
+    case SET_AUTOBACKLIGHT_INIT_END_HOUR:
+        setBacklightInitEndHour();
+        wakeScreen = MENU_SCREEN;
+        break;
     default:
         break;
     }

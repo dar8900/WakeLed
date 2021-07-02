@@ -27,6 +27,7 @@ class WAKE_LED
             BACKLIGHT_TIME_SCREEN,
             METEO_INFO_SCREEN,
             SET_DISPLAY_BRIGHTNESS,
+            SET_AUTOBACKLIGHT_INIT_END_HOUR,
             SYSTEM_INFO,
             SET_TIME_OFFLINE,
             SET_DATE_OFFLINE,
@@ -87,6 +88,7 @@ class WAKE_LED
         void setOfflineDate();
         void setDisplayBrightness();
         void showSystemInfo();
+        void setBacklightInitEndHour();
 
     public:
         WAKE_LED();
