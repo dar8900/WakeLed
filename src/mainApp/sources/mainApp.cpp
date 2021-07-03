@@ -3,10 +3,10 @@
 
 #define METEO_X_START   92
 
-#define MAX_MENU_VOICES_ONLINE  8
+#define MAX_MENU_VOICES_ONLINE 9
 #define MAX_MENU_VOICES_OFFLINE (MAX_MENU_VOICES_ONLINE + 2)
 
-#define MAX_SYSTEM_INFO_VOICES  9
+#define MAX_SYSTEM_INFO_VOICES  11
 
 #define SECONDS_IN_YEAR 31536000
 
@@ -48,6 +48,8 @@ DispString SystemInfoVoices[MAX_SYSTEM_INFO_VOICES] =
     "Tempo snooze (min)",
     "Tempo restart( min)",
     "Tempo backlight (s)",
+    "Ora inizio backlight",
+    "Ora fine backlight",
     "Luminosita (%)",
     "Connessione wifi",
     "Up-time",
@@ -1129,6 +1131,8 @@ void WAKE_LED::showSystemInfo()
     SystemInfoValues[SNOOZE_TIME] = String(wakeLedAlarm->getSnoozeTime()).c_str();
     SystemInfoValues[RESTART_TIME] = String(wakeLedAlarm->getReactiveAlarmTime()).c_str();
     SystemInfoValues[BACKLIGHT_TIME] = String(display->getDisplayLedTurnoffTime()).c_str();
+    SystemInfoValues[BACKLIGHT_INIT_HOUR] = String(display->backlightInitHour).c_str();
+    SystemInfoValues[BACKLIGHT_END_HOUR] = String(display->backlightEndHour).c_str();
     SystemInfoValues[BRIGHTNESS] = String(display->getDisplayLedBrightness()).c_str();
     SystemInfoValues[WIFI_STATUS] = wifiStation->isWifiConnected() ? "SI" : "NO";
     SystemInfoValues[UP_TIME] = getUpTimeStr().c_str();
@@ -1238,11 +1242,11 @@ void WAKE_LED::setBacklightInitEndHour()
                     if(InitHour > 0)
                         InitHour--;
                     else
-                        InitHour = 22;
+                        InitHour = 21;
                 }
                 else
                 {
-                    if(EndHour > 1)
+                    if(EndHour > InitHour + 1)
                         EndHour--;
                     else
                         EndHour = 23;
@@ -1251,7 +1255,7 @@ void WAKE_LED::setBacklightInitEndHour()
             case ROTARY::INCREMENT:
                 if(ShiftHour)
                 {
-                    if(InitHour < 22)
+                    if(InitHour < 21)
                         InitHour++;
                     else
                         InitHour = 0;
@@ -1261,7 +1265,7 @@ void WAKE_LED::setBacklightInitEndHour()
                     if(EndHour < 23)
                         EndHour++;
                     else
-                        EndHour = 1;
+                        EndHour = InitHour + 1;
                 }
                 break;
             case ROTARY::BUTTON_PRESS:
