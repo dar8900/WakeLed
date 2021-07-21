@@ -940,7 +940,7 @@ void WAKE_LED::setOfflineDate()
     uint8_t Button = ROTARY::NO_ACTION;
     uint8_t Day = 1, Month = 1, Year = 21;
     const uint8_t DAY = 0, MONTH = 1, YEAR = 2;
-    const int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
     uint8_t WichChange = YEAR;
     while(!ExitSetDate)
     {
@@ -969,6 +969,10 @@ void WAKE_LED::setOfflineDate()
         case ROTARY::DECREMENT:
             if(WichChange == DAY)
             {
+                if((Year + 2000) % 4 == 0 || (Year + 2000) % 100 == 0 || (Year + 2000) % 400 == 0)
+                {
+                    DayInMonth[1] = 29;
+                }
                 if(Day > 1)
                     Day--;
                 else

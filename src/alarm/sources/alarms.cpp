@@ -89,8 +89,12 @@ void ALARM::getAlarmTime(uint8_t &AlarmHour, uint8_t &AlarmMinute)
 void ALARM::setAlarmTime(uint8_t AlarmHour, uint8_t AlarmMinute)
 {
     uint32_t ActualTime = actualTime.ts;
-    const int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    int DayInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
     std::tm *locTime = std::localtime((time_t *)&ActualTime);
+    if(locTime->tm_year % 4 == 0 || locTime->tm_year % 100 == 0 || locTime->tm_year % 400 == 0)
+    {
+        DayInMonth[1] = 29;
+    }
     alarmTime.hour = AlarmHour;
     alarmTime.minute = AlarmMinute;
     locTime->tm_hour = alarmTime.hour;
