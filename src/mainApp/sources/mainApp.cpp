@@ -327,7 +327,7 @@ void WAKE_LED::mainScreen()
             }
             else
             {
-                display->drawString(60 , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "Snooze");
+                display->drawString(60 , NHDST7565::TOP_POS, NHDST7565::W_5_H_8, "Snz");
             }
         }
         drawWeatherInfo();
