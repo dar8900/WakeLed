@@ -63,7 +63,7 @@ void WAKE_LED::manageAlarmLed()
     uint8_t ActualHour = 0, ActualMinute = 0;
     uint32_t AlarmTimestamp = 0;
     AlarmTimestamp = wakeLedAlarm->getAlarmTimestamp();
-    if(wakeLedAlarm->isAlarmSet() && PreAccensionSeconds != 0 && !wakeLedAlarm->isAlarmSnoozed())
+    if(wakeLedAlarm->isAlarmSet() && !wakeLedAlarm->isAlarmActive() && PreAccensionSeconds != 0 && !wakeLedAlarm->isAlarmSnoozed())
     {   
         uint32_t TsDiff = AlarmTimestamp - wifiStation->timeDateInfo.timestamp;
         if(TsDiff <= PreAccensionSeconds && TsDiff != 0)
@@ -84,6 +84,12 @@ void WAKE_LED::manageAlarmLed()
             preAccensionTimer->restart();
             alarmLed->writeDigital(OFF);
         }
+    }
+    else if(wakeLedAlarm->isAlarmSet() && wakeLedAlarm->isAlarmActive() && !wakeLedAlarm->isAlarmSnoozed())
+    {
+        accensionLedPwmIncrement = 0;
+        preAccensionTimer->restart();
+        alarmLed->writeDigital(ON);
     }
     else
     {
