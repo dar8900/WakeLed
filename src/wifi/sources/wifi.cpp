@@ -1,5 +1,6 @@
 #include "../headers/wifi.h"
 #include "../wifi_cred.h"
+#include "../headers/restapi_server.h"
 
 const DispString WeekDays[7] = {"Domenica", "Lunedi", "Martedi", "Mercoledi", "Giovedi", "Venerdi", "Sabato"};
 
@@ -290,6 +291,7 @@ void WIFI_STATION::initWifiStation()
         timeClient->begin();
         getWeatherInfo(true);
         *myIp = WiFi.localIP();
+        serverInit();
     }
     else
     {
@@ -319,6 +321,7 @@ void WIFI_STATION::run()
         getWeatherInfo(false);
         backupTimerStarted = false;
         legalHourShift();
+        serverRun();
     }
     else
     {

@@ -1,25 +1,59 @@
 #include "../headers/restapi_server.h"
+#include "../../debug/headers/debug.h"
 
-RESTAPI_SERVER::RESTAPI_SERVER()
+typedef std::string ServerString;
+
+ESP8266WebServer server_RA(SERVER_PORT);
+
+ServerString respMsg;
+ServerString reqMsg;
+
+HTTPMethod reqMethod;
+
+
+
+
+void onNotFoundPageHandle()
 {
-    server_RA = new ESP8266WebServer(8080);
-    respMsg = new String();
-    reqMsg = new String();
-    reqMethod = new HTTPMethod();
+    respMsg = "{\"code\": \"ERROR\", \"message\": \"Pagina non trovata\"}";
+    server_RA.send(404, "application/json", respMsg.c_str());
+    respMsg.clear();
 }
 
-void RESTAPI_SERVER::serverInit()
+
+void onRootHandle()
+{
+    reqMethod = server_RA.method();  
+    if(server_RA.method() == HTTP_GET)
+    {
+        respMsg = "{\"code\": \"OK\", \"message\": \"Ciao da WakeLed!\"}";
+    } 
+    else
+    {
+        respMsg = "{\"code\": \"ERROR\", \"message\": \"Metodo non permesso qui\"}";
+    }
+    server_RA.send(200, "application/json", respMsg.c_str());
+    respMsg.clear();
+}
+
+void serverInit()
 {
     // Activate mDNS this is used to be able to connect to the server
     // with local DNS hostmane hostname.local
-    if (MDNS.begin(hostname.c_str())) 
+    if (MDNS.begin(HOSTNAME)) 
     {
-        Serial.println("MDNS responder started");
+        WakeledDebug.writeDebugString("MSDN service started", "serverInit");
     }
+    server_RA.on("/", onRootHandle);
+
+    server_RA.onNotFound(onNotFoundPageHandle);
+
+    server_RA.begin();
+    WakeledDebug.writeDebugString("Server started", "serverInit");
 }
 
 
-void RESTAPI_SERVER::serverRun()
+void serverRun()
 {
-    
+    server_RA.handleClient();
 }
