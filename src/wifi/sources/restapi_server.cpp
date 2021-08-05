@@ -1,30 +1,47 @@
 #include "../headers/restapi_server.h"
 #include "../../debug/headers/debug.h"
 
-typedef std::string ServerString;
-
 ESP8266WebServer server_RA(SERVER_PORT);
 
-ServerString respMsg;
+
 ServerString reqMsg;
 
-HTTPMethod reqMethod;
+uint8_t reqMethod = UNKNOWN_REQ;
 
-
-
+void getMethod()
+{
+    HTTPMethod Method = server_RA.method();
+    if(Method == HTTP_GET)
+    {
+        reqMethod = GET_REQ;
+    }
+    else if(Method == HTTP_POST)
+    {
+        reqMethod = POST_REQ;
+    }
+    else
+    {
+        reqMethod = UNKNOWN_REQ;
+    }
+}
 
 void onNotFoundPageHandle()
 {
-    respMsg = "{\"code\": \"ERROR\", \"message\": \"Pagina non trovata\"}";
-    server_RA.send(404, "application/json", respMsg.c_str());
-    respMsg.clear();
+    server_RA.send(404, MESSAGE_TYPE, 
+    "{\"code\": \"ERROR\", \"message\": \"Pagina non trovata\"}");
 }
 
+void onUnvailablePage()
+{
+    server_RA.send(503, MESSAGE_TYPE, 
+    "{\"code\": \"ERROR\", \"message\": \"Pagina non ancora disponibile\"}");
+}
 
 void onRootHandle()
 {
-    reqMethod = server_RA.method();  
-    if(server_RA.method() == HTTP_GET)
+    getMethod(); 
+    ServerString respMsg = "";
+    if(reqMethod == GET_REQ)
     {
         respMsg = "{\"code\": \"OK\", \"message\": \"Ciao da WakeLed!\"}";
     } 
@@ -32,8 +49,7 @@ void onRootHandle()
     {
         respMsg = "{\"code\": \"ERROR\", \"message\": \"Metodo non permesso qui\"}";
     }
-    server_RA.send(200, "application/json", respMsg.c_str());
-    respMsg.clear();
+    server_RA.send(200, MESSAGE_TYPE, respMsg.c_str());
 }
 
 void serverInit()
@@ -45,6 +61,17 @@ void serverInit()
         WakeledDebug.writeDebugString("MSDN service started", "serverInit");
     }
     server_RA.on("/", onRootHandle);
+    server_RA.on("/get_time", onUnvailablePage);
+    server_RA.on("/get_date", onUnvailablePage);
+    server_RA.on("/get_weather", onUnvailablePage);
+    server_RA.on("/get_alarm_time", onUnvailablePage);
+    server_RA.on("/get_led_time", onUnvailablePage);
+    server_RA.on("/get_soonze_time", onUnvailablePage);
+    server_RA.on("/get_restart_alarm_time", onUnvailablePage);
+    server_RA.on("/get_display_brightness_mode", onUnvailablePage);
+    server_RA.on("/get_backlight_time", onUnvailablePage);
+    server_RA.on("/get_fw_version", onUnvailablePage);
+    server_RA.on("/get_uptime", onUnvailablePage);
 
     server_RA.onNotFound(onNotFoundPageHandle);
 
