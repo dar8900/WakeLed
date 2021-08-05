@@ -10,6 +10,7 @@ WIFI_STATION::WIFI_STATION()
     httpWeatherReq = new HTTPClient();
     weatherTimer = new Chrono(Chrono::SECONDS);
     takeTimeBackUp = new Chrono(Chrono::MILLIS);
+    myIp = new IPAddress(0, 0, 0, 0);
 }
 
 void WIFI_STATION::searchWifiSsid()
@@ -288,6 +289,7 @@ void WIFI_STATION::initWifiStation()
     {
         timeClient->begin();
         getWeatherInfo(true);
+        *myIp = WiFi.localIP();
     }
     else
     {
@@ -297,6 +299,11 @@ void WIFI_STATION::initWifiStation()
         timeDateInfo.weekDay = "--------";
     }
     
+}
+
+DispString WIFI_STATION::getMyIp()
+{
+    return myIp->toString().c_str();
 }
 
 void WIFI_STATION::run()

@@ -45,6 +45,7 @@ class WIFI_STATION
         DispString getDateFormatted();
         DispString getWeekday();
         void legalHourShift();
+        IPAddress *myIp;
         
 
     public:
@@ -86,6 +87,7 @@ class WIFI_STATION
         void initWifiStation();
         void setOfflineTime(uint8_t Hour, uint8_t Minute);
         void setOfflineDate(uint8_t Day, uint8_t Month, uint8_t Year);
+        DispString getMyIp();
         void run();
 };
 
