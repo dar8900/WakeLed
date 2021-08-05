@@ -6,7 +6,7 @@
 #define MAX_MENU_VOICES_ONLINE 9
 #define MAX_MENU_VOICES_OFFLINE (MAX_MENU_VOICES_ONLINE + 2)
 
-#define MAX_SYSTEM_INFO_VOICES  11
+#define MAX_SYSTEM_INFO_VOICES  12
 
 #define SECONDS_IN_YEAR 31536000
 
@@ -53,6 +53,7 @@ DispString SystemInfoVoices[MAX_SYSTEM_INFO_VOICES] =
     "Luminosita (%)",
     "Connessione wifi",
     "Up-time",
+    "IP",
 };
 
 DispString SystemInfoValues[MAX_SYSTEM_INFO_VOICES];
@@ -1153,6 +1154,7 @@ void WAKE_LED::showSystemInfo()
     SystemInfoValues[BRIGHTNESS] = String(display->getDisplayLedBrightness()).c_str();
     SystemInfoValues[WIFI_STATUS] = wifiStation->isWifiConnected() ? "SI" : "NO";
     SystemInfoValues[UP_TIME] = getUpTimeStr().c_str();
+    SystemInfoValues[MY_IP] = wifiStation->getMyIp();
     while(!ExitShowSystemInfo)
     {
         SystemInfoValues[UP_TIME] = getUpTimeStr().c_str();
@@ -1164,7 +1166,7 @@ void WAKE_LED::showSystemInfo()
             if(NextItem >= MAX_INFO)
                 break;
             display->drawString(9, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoVoices[NextItem]); 
-            if(NextItem != UP_TIME)
+            if(NextItem != UP_TIME && NextItem != MY_IP)
             {
                 display->drawString(100, 10 + (12 * MenuItem), NHDST7565::W_3_H_6, SystemInfoValues[NextItem]); 
             }

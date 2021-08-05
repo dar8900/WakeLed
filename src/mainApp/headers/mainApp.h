@@ -47,6 +47,7 @@ class WAKE_LED
             BRIGHTNESS,
             WIFI_STATUS,
             UP_TIME,
+            MY_IP,
             MAX_INFO
         };
 
