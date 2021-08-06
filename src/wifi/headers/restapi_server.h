@@ -22,31 +22,26 @@ enum
     UNKNOWN_REQ
 };
 
-enum
+class RESTAPI_SERVER
 {
-    GET_TIME = 0,
-    GET_DATE,
-    GET_WEATHER,
-    GET_ALARM_TIME,
-    GET_LED_TIME,
-    GET_SNOOZE_TIME,
-    GET_RESTART_ALARM_TIME,
-    GET_DISPLAY_BRIGHTNESS_MODE,
-    GET_BACKLIGHT_TIME,
-    GET_FW_VERSION,
-    GET_UPTIME,
-    MAX_RESTAPI_REQ
+    public:
+
+    typedef struct 
+    {
+        ServerString time;
+        ServerString date;
+        ServerString wheater;
+    }RESTAPI_GET_REQ_DATA;
+
+        RESTAPI_SERVER();
+        ESP8266WebServer *server;
+        uint8_t reqMethod = UNKNOWN_REQ;
+        RESTAPI_GET_REQ_DATA dataGet;
+        void serverInit();
+        void serverRun();
 };
 
-typedef struct 
-{
-    ServerString time;
-    ServerString date;
-    ServerString wheater;
 
-}RESTAPI_REQ_DATA;
+extern RESTAPI_SERVER Server_RA;
 
-
-void serverInit();
-void serverRun();
 #endif

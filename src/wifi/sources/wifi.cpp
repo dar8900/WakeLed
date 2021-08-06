@@ -291,7 +291,7 @@ void WIFI_STATION::initWifiStation()
         timeClient->begin();
         getWeatherInfo(true);
         *myIp = WiFi.localIP();
-        serverInit();
+        Server_RA.serverInit();
     }
     else
     {
@@ -321,7 +321,7 @@ void WIFI_STATION::run()
         getWeatherInfo(false);
         backupTimerStarted = false;
         legalHourShift();
-        serverRun();
+        Server_RA.serverRun();
     }
     else
     {

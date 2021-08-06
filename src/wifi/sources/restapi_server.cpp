@@ -1,39 +1,36 @@
 #include "../headers/restapi_server.h"
 #include "../../debug/headers/debug.h"
 
-ESP8266WebServer server_RA(SERVER_PORT);
 
 
-ServerString reqMsg;
-
-uint8_t reqMethod = UNKNOWN_REQ;
+// ESP8266WebServer server_RA(SERVER_PORT);
 
 void getMethod()
 {
-    HTTPMethod Method = server_RA.method();
+    HTTPMethod Method = Server_RA.server->method();
     if(Method == HTTP_GET)
     {
-        reqMethod = GET_REQ;
+        Server_RA.reqMethod = GET_REQ;
     }
     else if(Method == HTTP_POST)
     {
-        reqMethod = POST_REQ;
+        Server_RA.reqMethod = POST_REQ;
     }
     else
     {
-        reqMethod = UNKNOWN_REQ;
+        Server_RA.reqMethod = UNKNOWN_REQ;
     }
 }
 
 void onNotFoundPageHandle()
 {
-    server_RA.send(404, MESSAGE_TYPE, 
+    Server_RA.server->send(404, MESSAGE_TYPE, 
     "{\"code\": \"ERROR\", \"message\": \"Pagina non trovata\"}");
 }
 
 void onUnvailablePage()
 {
-    server_RA.send(503, MESSAGE_TYPE, 
+    Server_RA.server->send(503, MESSAGE_TYPE, 
     "{\"code\": \"ERROR\", \"message\": \"Pagina non ancora disponibile\"}");
 }
 
@@ -41,7 +38,7 @@ void onRootHandle()
 {
     getMethod(); 
     ServerString respMsg = "";
-    if(reqMethod == GET_REQ)
+    if(Server_RA.reqMethod == GET_REQ)
     {
         respMsg = "{\"code\": \"OK\", \"message\": \"Ciao da WakeLed!\"}";
     } 
@@ -49,10 +46,17 @@ void onRootHandle()
     {
         respMsg = "{\"code\": \"ERROR\", \"message\": \"Metodo non permesso qui\"}";
     }
-    server_RA.send(200, MESSAGE_TYPE, respMsg.c_str());
+    Server_RA.server->send(200, MESSAGE_TYPE, respMsg.c_str());
 }
 
-void serverInit()
+
+RESTAPI_SERVER::RESTAPI_SERVER()
+{
+    server = new ESP8266WebServer(SERVER_PORT); 
+}
+
+
+void RESTAPI_SERVER::serverInit()
 {
     // Activate mDNS this is used to be able to connect to the server
     // with local DNS hostmane hostname.local
@@ -60,27 +64,30 @@ void serverInit()
     {
         WakeledDebug.writeDebugString("MSDN service started", "serverInit");
     }
-    server_RA.on("/", onRootHandle);
-    server_RA.on("/get_time", onUnvailablePage);
-    server_RA.on("/get_date", onUnvailablePage);
-    server_RA.on("/get_weather", onUnvailablePage);
-    server_RA.on("/get_alarm_time", onUnvailablePage);
-    server_RA.on("/get_led_time", onUnvailablePage);
-    server_RA.on("/get_soonze_time", onUnvailablePage);
-    server_RA.on("/get_restart_alarm_time", onUnvailablePage);
-    server_RA.on("/get_display_brightness_mode", onUnvailablePage);
-    server_RA.on("/get_backlight_time", onUnvailablePage);
-    server_RA.on("/get_fw_version", onUnvailablePage);
-    server_RA.on("/get_uptime", onUnvailablePage);
+    server->on("/", onRootHandle);
+    server->on("/get_time", onUnvailablePage);
+    server->on("/get_date", onUnvailablePage);
+    server->on("/get_weather", onUnvailablePage);
+    server->on("/get_alarm_time", onUnvailablePage);
+    server->on("/get_led_time", onUnvailablePage);
+    server->on("/get_soonze_time", onUnvailablePage);
+    server->on("/get_restart_alarm_time", onUnvailablePage);
+    server->on("/get_display_brightness_mode", onUnvailablePage);
+    server->on("/get_backlight_time", onUnvailablePage);
+    server->on("/get_fw_version", onUnvailablePage);
+    server->on("/get_uptime", onUnvailablePage);
 
-    server_RA.onNotFound(onNotFoundPageHandle);
+    server->onNotFound(onNotFoundPageHandle);
 
-    server_RA.begin();
+    server->begin();
     WakeledDebug.writeDebugString("Server started", "serverInit");
 }
 
 
-void serverRun()
+void RESTAPI_SERVER::serverRun()
 {
-    server_RA.handleClient();
+    server->handleClient();
 }
+
+
+RESTAPI_SERVER Server_RA;
