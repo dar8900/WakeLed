@@ -1,4 +1,5 @@
 #include "../headers/mainApp.h"
+#include "../../wifi/headers/restapi_server.h"
 #include <ctime>
 
 #define METEO_X_START   92
@@ -180,6 +181,11 @@ void WAKE_LED::backGroundTasks()
             upTime = 0;
         }
     }
+    if(refreshServerDataTimer->hasPassed(5, true))
+    {
+        refreshServerData();
+    }
+    
 }
 
 void WAKE_LED::drawTopInfo()
@@ -1330,6 +1336,62 @@ void WAKE_LED::setBacklightInitEndHour()
     }   
 }
 
+void WAKE_LED::refreshServerData()
+{
+    uint8_t AlarmH = 0, AlarmM = 0;
+    Server_RA.dataGet.date = wifiStation->timeDateInfo.dateFormatted;
+    Server_RA.dataGet.time = wifiStation->timeDateInfo.timeFormatted;
+    switch(wifiStation->weatherInfo.weatherID)
+    {
+        case WIFI_STATION::TEMPESTA:
+            Server_RA.dataGet.weatherInfo.weather = "Tempesta";
+            break;
+        case WIFI_STATION::PIOVIGGINE:
+            Server_RA.dataGet.weatherInfo.weather = "Pioviggine";
+            break;
+        case WIFI_STATION::PIOGGIA:
+            Server_RA.dataGet.weatherInfo.weather = "Pioggia";
+            break;
+        case WIFI_STATION::NEVE:
+            Server_RA.dataGet.weatherInfo.weather = "Neve";
+            break;
+        case WIFI_STATION::NEBBIA:
+            Server_RA.dataGet.weatherInfo.weather = "Nebbia";
+            break;
+        case WIFI_STATION::LIMPIDO:
+            Server_RA.dataGet.weatherInfo.weather = "Limpido";
+            break;
+        case WIFI_STATION::NUVOLOSO:
+            Server_RA.dataGet.weatherInfo.weather = "Nuvoloso";
+            break;                                       
+        default:
+            Server_RA.dataGet.weatherInfo.weather = "Terso";
+            break;
+    }
+    Server_RA.dataGet.weatherInfo.temperature = String(wifiStation->weatherInfo.temperature).c_str();
+    Server_RA.dataGet.weatherInfo.temperature += "°C";
+    Server_RA.dataGet.weatherInfo.humidity = String(wifiStation->weatherInfo.humidity).c_str();
+    Server_RA.dataGet.weatherInfo.humidity += "%";
+    wakeLedAlarm->getAlarmTime(AlarmH, AlarmM);
+    String AlarmT = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
+    AlarmT += ":";
+    AlarmT += AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
+    Server_RA.dataGet.alarmTime = AlarmT.c_str();
+    Server_RA.dataGet.ledTime = String(preAccensionTime).c_str();
+    Server_RA.dataGet.ledTime += " min";
+    Server_RA.dataGet.snoozeTime = String(wakeLedAlarm->getSnoozeTime()).c_str();
+    Server_RA.dataGet.snoozeTime += " min";
+    Server_RA.dataGet.restartAlarmTime = String(wakeLedAlarm->getReactiveAlarmTime()).c_str();
+    Server_RA.dataGet.restartAlarmTime += " min";
+    Server_RA.dataGet.displayBrightnessMode = displayBrightnessAuto == true ? "Auto" : "Manuale";
+    Server_RA.dataGet.displayBrightness = String(display->getDisplayLedBrightness()).c_str();
+    Server_RA.dataGet.displayBrightness += "%";
+    Server_RA.dataGet.backlightTime = String(display->getDisplayLedTurnoffTime()).c_str();
+    Server_RA.dataGet.backlightTime += " sec";
+    Server_RA.dataGet.fwVersion = VERSION;
+    Server_RA.dataGet.uptime = getUpTimeStr().c_str();
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -1341,6 +1403,7 @@ WAKE_LED::WAKE_LED()
     preAccensionTimer = new Chrono(Chrono::SECONDS, false);
     autoBrightnessTimer = new Chrono(Chrono::SECONDS, false);
     upTimeTimer = new Chrono(Chrono::SECONDS);
+    refreshServerDataTimer = new Chrono(Chrono::SECONDS);
     autoBrightnessTimer->restart();
 }
 
