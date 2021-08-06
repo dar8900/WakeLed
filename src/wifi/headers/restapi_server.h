@@ -22,6 +22,16 @@ enum
     UNKNOWN_REQ
 };
 
+enum
+{
+    HTTP_OK = 200,
+    HTTP_BAD_REQUEST = 400,
+    HTTP_NOT_FOUND = 404,
+    HTTP_METHOD_NOT_ALLOWED = 405,
+    HTTP_SERVER_ERROR = 500,
+    NO_CODE = 0
+};
+
 class RESTAPI_SERVER
 {
     public:
@@ -38,6 +48,7 @@ class RESTAPI_SERVER
         ServerString date;
         SERVER_WEATHER_INFO weatherInfo;
         ServerString alarmTime;
+        ServerString alarmSettingStr;
         ServerString ledTime;
         ServerString snoozeTime;
         ServerString restartAlarmTime;
@@ -51,7 +62,8 @@ class RESTAPI_SERVER
 
     typedef struct 
     {
-        bool setAlarm = false;
+        bool alarmTime = false;
+        bool alarmSetting = false;
         bool setLedTime = false;
         bool setSnoozeTime = false;
         bool setRestartTime = false;
@@ -65,6 +77,7 @@ class RESTAPI_SERVER
         SERVER_SETTINGS_FLAG flags;
         uint8_t alarmHour;
         uint8_t alarmMinute;
+        bool alarmSet;
         uint16_t ledTime;
         uint16_t snoozeTime;
         uint16_t restartAlarmTime;
@@ -73,19 +86,19 @@ class RESTAPI_SERVER
         uint16_t backlightTime;
     }RESTAPI_POST_REQ_DATA;
 
-        RESTAPI_SERVER();
-        ESP8266WebServer *server;
-        uint8_t reqMethod = UNKNOWN_REQ;
-        ServerString respBody;
-        ServerString reqBody;
-        StaticJsonDocument<200> JSON_Doc;
-        RESTAPI_GET_REQ_DATA dataGet;
-        RESTAPI_POST_REQ_DATA dataPost;
-        void clearMessages();
-        bool parseJSONReqDone();
-        void getMethod(); 
-        void serverInit();
-        void serverRun();
+    RESTAPI_SERVER();
+    ESP8266WebServer *server;
+    uint8_t reqMethod = UNKNOWN_REQ;
+    ServerString respBody;
+    ServerString reqBody;
+    StaticJsonDocument<200> JSON_Doc;
+    RESTAPI_GET_REQ_DATA dataGet;
+    RESTAPI_POST_REQ_DATA dataPost;
+    void clearMessages();
+    bool parseJSONReqDone();
+    void getMethod(); 
+    void serverInit();
+    void serverRun();
 };
 
 

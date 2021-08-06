@@ -1378,6 +1378,7 @@ void WAKE_LED::refreshServerData()
     AlarmT += ":";
     AlarmT += AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
     Server_RA.dataGet.alarmTime = AlarmT.c_str();
+    Server_RA.dataGet.alarmSettingStr = wakeLedAlarm->isAlarmSet() ? "Allarme impostato" : "Allarme non impostato";
     Server_RA.dataGet.ledTime = String(preAccensionTime).c_str();
     Server_RA.dataGet.ledTime += " min";
     Server_RA.dataGet.snoozeTime = String(wakeLedAlarm->getSnoozeTime()).c_str();
@@ -1395,10 +1396,19 @@ void WAKE_LED::refreshServerData()
 
 void WAKE_LED::changeDataFromServer()
 {
-    if(Server_RA.dataPost.flags.setAlarm)
+    if(Server_RA.dataPost.flags.alarmTime)
     {
-        Server_RA.dataPost.flags.setAlarm = false;
+        Server_RA.dataPost.flags.alarmTime = false;
         wakeLedAlarm->setAlarmTime(Server_RA.dataPost.alarmHour, Server_RA.dataPost.alarmMinute);
+        wakeLedAlarm->setAlarm();
+    }
+    if(Server_RA.dataPost.flags.alarmSetting)
+    {
+        Server_RA.dataPost.flags.alarmSetting = false;
+        if(Server_RA.dataPost.alarmSet)
+            wakeLedAlarm->setAlarm();
+        else
+            wakeLedAlarm->resetAlarm();
     }
     if(Server_RA.dataPost.flags.setLedTime)
     {
