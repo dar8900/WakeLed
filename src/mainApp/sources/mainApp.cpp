@@ -109,8 +109,6 @@ void WAKE_LED::adjustAutoBrightness()
         if(autoBrightnessTimer->hasPassed(60, true))
         {
             double Bright = 0.0;
-            // const int InitHour = 6;
-            // const int EndHour = 23;
             time_t ts = (time_t)wifiStation->timeDateInfo.timestamp;
             std::tm *locTime = std::localtime(&ts);
             if(locTime->tm_hour >= display->backlightInitHour && locTime->tm_hour <= display->backlightEndHour)
