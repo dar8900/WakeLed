@@ -69,8 +69,8 @@ class RESTAPI_SERVER
         uint16_t snoozeTime;
         uint16_t restartAlarmTime;
         bool displayBrightnessMode;
-        ServerString displayBrightness;
-        int backlightTime;
+        int displayBrightness;
+        uint16_t backlightTime;
     }RESTAPI_POST_REQ_DATA;
 
         RESTAPI_SERVER();

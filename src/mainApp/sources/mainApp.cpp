@@ -184,6 +184,7 @@ void WAKE_LED::backGroundTasks()
     if(refreshServerDataTimer->hasPassed(5, true))
     {
         refreshServerData();
+        changeDataFromServer();
     }
     
 }
@@ -1390,6 +1391,45 @@ void WAKE_LED::refreshServerData()
     Server_RA.dataGet.backlightTime += " sec";
     Server_RA.dataGet.fwVersion = VERSION;
     Server_RA.dataGet.uptime = getUpTimeStr().c_str();
+}
+
+void WAKE_LED::changeDataFromServer()
+{
+    if(Server_RA.dataPost.flags.setAlarm)
+    {
+        Server_RA.dataPost.flags.setAlarm = false;
+        wakeLedAlarm->setAlarmTime(Server_RA.dataPost.alarmHour, Server_RA.dataPost.alarmMinute);
+    }
+    if(Server_RA.dataPost.flags.setLedTime)
+    {
+        Server_RA.dataPost.flags.setLedTime = false;
+        preAccensionTime = Server_RA.dataPost.ledTime;
+    }
+    if(Server_RA.dataPost.flags.setSnoozeTime)
+    {
+        Server_RA.dataPost.flags.setSnoozeTime = false;
+        wakeLedAlarm->setSnoozeTime(Server_RA.dataPost.snoozeTime);
+    }
+    if(Server_RA.dataPost.flags.setRestartTime)
+    {
+        Server_RA.dataPost.flags.setRestartTime = false;
+        wakeLedAlarm->setReactiveAlarmTime(Server_RA.dataPost.restartAlarmTime);
+    }
+    if(Server_RA.dataPost.flags.setDisplayBrightnessMode)
+    {
+        Server_RA.dataPost.flags.setDisplayBrightnessMode = false;
+        displayBrightnessAuto = Server_RA.dataPost.displayBrightnessMode;
+    }
+    if(Server_RA.dataPost.flags.setDisplayBrightness)
+    {
+        Server_RA.dataPost.flags.setDisplayBrightness = false;
+        display->setDisplayLedBrightness(Server_RA.dataPost.displayBrightness);
+    }
+    if(Server_RA.dataPost.flags.setBacklight)
+    {
+        Server_RA.dataPost.flags.setBacklight = false;
+        display->setDisplayLedTurnoffTime(Server_RA.dataPost.backlightTime);
+    }
 }
 
 WAKE_LED::WAKE_LED()

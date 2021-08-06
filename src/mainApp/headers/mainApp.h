@@ -95,6 +95,7 @@ class WAKE_LED
         void setBacklightInitEndHour();
         
         void refreshServerData();
+        void changeDataFromServer();
 
     public:
         WAKE_LED();
