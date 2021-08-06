@@ -25,12 +25,26 @@ enum
 class RESTAPI_SERVER
 {
     public:
-
+    typedef struct 
+    {
+        ServerString weather;
+        ServerString temperature;
+        ServerString humidity;
+    }SERVER_WEATHER_INFO;
     typedef struct 
     {
         ServerString time;
         ServerString date;
-        ServerString wheater;
+        SERVER_WEATHER_INFO weatherInfo;
+        ServerString alarmTime;
+        ServerString ledTime;
+        ServerString snoozeTime;
+        ServerString restartAlarmTime;
+        ServerString displayBrightnessMode;
+        ServerString displayBrightness;
+        ServerString backlightTime;
+        ServerString fwVersion;
+        ServerString uptime;
     }RESTAPI_GET_REQ_DATA;
 
         RESTAPI_SERVER();
