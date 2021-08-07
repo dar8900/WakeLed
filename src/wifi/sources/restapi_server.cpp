@@ -7,15 +7,13 @@
 void onNotFoundRes()
 {
     Server_RA.clearMessages();
-    Server_RA.composeErrorMessage(HTTP_NOT_FOUND);
-    Server_RA.server->send(HTTP_NOT_FOUND, MESSAGE_TYPE, Server_RA.reqBody.c_str());
+    Server_RA.composeAndSendMessage(HTTP_NOT_FOUND);
 }
 
 void onUnvailableRes()
 {
     Server_RA.clearMessages();
-    Server_RA.composeErrorMessage(HTTP_SERVICE_UVAILABLE);
-    Server_RA.server->send(HTTP_SERVICE_UVAILABLE, MESSAGE_TYPE, Server_RA.reqBody.c_str());
+    Server_RA.composeAndSendMessage(HTTP_SERVICE_UVAILABLE);
 }
 
 void onRoot()
@@ -30,10 +28,9 @@ void onRoot()
     } 
     else
     {
-        Server_RA.composeErrorMessage(HTTP_METHOD_NOT_ALLOWED);
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onTime()
@@ -51,9 +48,8 @@ void onTime()
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.composeErrorMessage(HTTP_METHOD_NOT_ALLOWED);
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onDate()
@@ -71,9 +67,8 @@ void onDate()
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.composeErrorMessage(HTTP_METHOD_NOT_ALLOWED);
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onWeatherInfo()
@@ -95,9 +90,9 @@ void onWeatherInfo()
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.composeErrorMessage(HTTP_METHOD_NOT_ALLOWED);
+        
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onAlarmTime()
@@ -127,22 +122,20 @@ void onAlarmTime()
                 Server_RA.dataPost.alarmHour = NewAlarmHour;
                 Server_RA.dataPost.alarmMinute = NewAlarmMinute;
                 Server_RA.dataPost.flags.alarmTime = true;
-                HttpCode = HTTP_OK;
                 Server_RA.respBody = "{\"messaggio\": \"Orario allarme impostato\"}";
+                HttpCode = HTTP_OK;
             }
             else
             {
-                HttpCode = HTTP_BAD_REQUEST;
-                Server_RA.composeErrorMessage(HTTP_BAD_REQUEST);            
+                HttpCode = HTTP_BAD_REQUEST;           
             }
         }
         else
         {
             HttpCode = HTTP_SERVER_ERROR;
-            Server_RA.composeErrorMessage(HTTP_SERVER_ERROR); 
         }
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode); 
 }
 
 void onAlarmSetting()
@@ -153,7 +146,7 @@ void onAlarmSetting()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"impostazione_allarme\": \"";
+        Server_RA.respBody = "{\"impostazione_allarme\": \"";
         Server_RA.respBody += Server_RA.dataGet.alarmSettingStr;
         Server_RA.respBody += "\"}";
     }
@@ -169,27 +162,25 @@ void onAlarmSetting()
             {
                 Server_RA.dataPost.alarmSet = true;
                 Server_RA.dataPost.flags.alarmSetting = true;
-                Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"impostazione_allarme\": \"Allarme impostato\"";
+                Server_RA.respBody = "{\"messaggio\": \"Allarme impostato\"";
             }
             else if(AlarmStatusStr.equals("reset"))
             {
                 Server_RA.dataPost.alarmSet = false;
                 Server_RA.dataPost.flags.alarmSetting = true;
-                Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"impostazione_allarme\": \"Allarme non impostato\"";
+                Server_RA.respBody = "{\"messaggio\": \"Allarme non impostato\"";
             }
             else
             {
                 HttpCode = HTTP_BAD_REQUEST;
-                Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Errore nella richiesta, dati errati\"}";
             }
         }
         else
         {
             HttpCode = HTTP_SERVER_ERROR;
-            Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Errore nell'elaborare la richiesta JSON\"}";
         }
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onLedTime()
@@ -200,16 +191,17 @@ void onLedTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"tempo_led\": \"";
+        Server_RA.respBody = "{\"tempo_led\": \"";
         Server_RA.respBody += Server_RA.dataGet.ledTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onSnoozeTime()
@@ -220,16 +212,15 @@ void onSnoozeTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"tempo_snooze\": \"";
+        Server_RA.respBody = "{\"tempo_snooze\": \"";
         Server_RA.respBody += Server_RA.dataGet.snoozeTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onRestartAlarmTime()
@@ -240,16 +231,15 @@ void onRestartAlarmTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"tempo_reset_allarme\": \"";
+        Server_RA.respBody = "{\"tempo_restart_allarme\": \"";
         Server_RA.respBody += Server_RA.dataGet.restartAlarmTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onBrightnessMode()
@@ -260,16 +250,15 @@ void onBrightnessMode()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"modalità_luminosità\": \"";
+        Server_RA.respBody = "{\"modalità_luminosità\": \"";
         Server_RA.respBody += Server_RA.dataGet.displayBrightnessMode;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onBrightness()
@@ -280,16 +269,15 @@ void onBrightness()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"luminosità_attuale\": \"";
+        Server_RA.respBody = "{\"luminosità_attuale\": \"";
         Server_RA.respBody += Server_RA.dataGet.displayBrightness;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());   
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onBacklightTime()
@@ -300,16 +288,15 @@ void onBacklightTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"tempo_backlight\": \"";
+        Server_RA.respBody = "{\"tempo_backlight\": \"";
         Server_RA.respBody += Server_RA.dataGet.backlightTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onFwVersion()
@@ -320,16 +307,15 @@ void onFwVersion()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"versione_fw\": \"";
+        Server_RA.respBody = "{\"versione_fw\": \"";
         Server_RA.respBody += Server_RA.dataGet.fwVersion;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 void onUptime()
@@ -340,16 +326,15 @@ void onUptime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"OK\", \"uptime\": \"";
+        Server_RA.respBody = "{\"uptime\": \"";
         Server_RA.respBody += Server_RA.dataGet.uptime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
-        Server_RA.respBody = "{\"tipo_messaggio\": \"ERROR\", \"messaggio\": \"Metodo non permesso\"}";
     }
-    Server_RA.server->send(HttpCode, MESSAGE_TYPE, Server_RA.respBody.c_str());
+    Server_RA.composeAndSendMessage(HttpCode);
 }
 
 
@@ -379,30 +364,39 @@ bool RESTAPI_SERVER:: parseJSONReqDone()
     return ParsingDone;
 }
 
-void RESTAPI_SERVER::composeErrorMessage(uint16_t HttpCode)
+void RESTAPI_SERVER::composeAndSendMessage(uint16_t HttpCode)
 {
     switch(HttpCode)
     {
         case HTTP_BAD_REQUEST:
-            respBody = "{\"ERROR\": \"Errore nella richiesta, dati errati\"}";
+            respBody = "{\"ERRORE\": \"Errore nella scrittura della richiesta\"}";
             break;
         case HTTP_NOT_FOUND:
             respBody = "{\"ERRORE\": \"Pagina non trovata\"}";
             break;
         case HTTP_METHOD_NOT_ALLOWED:
-            respBody = "{\"ERROR\": \"Metodo non permesso\"}";
+            respBody = "{\"ERRORE\": \"Metodo non permesso\"}";
             break;
         case HTTP_SERVER_ERROR:
-            respBody = "{\"ERROR\": \"Errore nell'elaborare la richiesta JSON\"}";
+            respBody = "{\"ERRORE\": \"Analisi della richiesta JSON fallita\"}";
             break;
         case HTTP_SERVICE_UVAILABLE:
             respBody = "{\"ERRORE\": \"Pagina non ancora disponibile\"}";
             break;
+        case HTTP_OK:
+            if(respBody.empty())
+            {
+                respBody = "{\"messaggio\": \"OK\"}";
+            }
+            break;
         case NO_CODE:
+        case HTTP_SERVER_ERROR:
         default:
-            WakeledDebug.writeDebugString("Codice errore non gestito", "sendErrorMessage");
+            respBody = "{\"ERRORE\": \"Errore nell'elaborare la richiesta JSON\"}";
+            HttpCode = HTTP_SERVER_ERROR;
             break;
     }
+    server->send(HttpCode, MESSAGE_TYPE, respBody.c_str());
 }
 
 void RESTAPI_SERVER::getMethod()

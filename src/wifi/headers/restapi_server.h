@@ -98,7 +98,7 @@ class RESTAPI_SERVER
     RESTAPI_POST_REQ_DATA dataPost;
     void clearMessages();
     bool parseJSONReqDone();
-    void composeErrorMessage(uint16_t HttpCode);
+    void composeAndSendMessage(uint16_t HttpCode = NO_CODE);
     void getMethod(); 
     void serverInit();
     void serverRun();
