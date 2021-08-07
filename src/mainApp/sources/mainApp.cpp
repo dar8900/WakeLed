@@ -1370,9 +1370,7 @@ void WAKE_LED::refreshServerData()
             break;
     }
     Server_RA.dataGet.weatherInfo.temperature = String(wifiStation->weatherInfo.temperature).c_str();
-    Server_RA.dataGet.weatherInfo.temperature += "°C";
     Server_RA.dataGet.weatherInfo.humidity = String(wifiStation->weatherInfo.humidity).c_str();
-    Server_RA.dataGet.weatherInfo.humidity += "%";
     wakeLedAlarm->getAlarmTime(AlarmH, AlarmM);
     String AlarmTimeStr = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
     Server_RA.dataGet.alarmHour = AlarmTimeStr.c_str();
@@ -1380,16 +1378,11 @@ void WAKE_LED::refreshServerData()
     Server_RA.dataGet.alarmMinute = AlarmTimeStr.c_str();
     Server_RA.dataGet.alarmSettingStr = wakeLedAlarm->isAlarmSet() ? "Allarme impostato" : "Allarme non impostato";
     Server_RA.dataGet.ledTime = String(preAccensionTime).c_str();
-    Server_RA.dataGet.ledTime += " min";
     Server_RA.dataGet.snoozeTime = String(wakeLedAlarm->getSnoozeTime()).c_str();
-    Server_RA.dataGet.snoozeTime += " min";
     Server_RA.dataGet.restartAlarmTime = String(wakeLedAlarm->getReactiveAlarmTime()).c_str();
-    Server_RA.dataGet.restartAlarmTime += " min";
-    Server_RA.dataGet.displayBrightnessMode = displayBrightnessAuto == true ? "Auto" : "Manuale";
+    Server_RA.dataGet.displayBrightnessMode = displayBrightnessAuto == true ? "auto" : "manuale";
     Server_RA.dataGet.displayBrightness = String(display->getDisplayLedBrightness()).c_str();
-    Server_RA.dataGet.displayBrightness += "%";
     Server_RA.dataGet.backlightTime = String(display->getDisplayLedTurnoffTime()).c_str();
-    Server_RA.dataGet.backlightTime += " sec";
     Server_RA.dataGet.fwVersion = VERSION;
     Server_RA.dataGet.uptime = getUpTimeStr().c_str();
 }
