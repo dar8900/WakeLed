@@ -1,4 +1,5 @@
 #include "../headers/mainApp.h"
+#include "../../wifi/headers/restapi_server.h"
 #include <ctime>
 
 #define METEO_X_START   92
@@ -178,6 +179,12 @@ void WAKE_LED::backGroundTasks()
             upTime = 0;
         }
     }
+    if(refreshServerDataTimer->hasPassed(5, true))
+    {
+        refreshServerData();
+        changeDataFromServer();
+    }
+    
 }
 
 void WAKE_LED::drawTopInfo()
@@ -1328,6 +1335,104 @@ void WAKE_LED::setBacklightInitEndHour()
     }   
 }
 
+void WAKE_LED::refreshServerData()
+{
+    uint8_t AlarmH = 0, AlarmM = 0;
+    Server_RA.dataGet.date = wifiStation->timeDateInfo.dateFormatted;
+    Server_RA.dataGet.time = wifiStation->timeDateInfo.timeFormatted;
+    switch(wifiStation->weatherInfo.weatherID)
+    {
+        case WIFI_STATION::TEMPESTA:
+            Server_RA.dataGet.weatherInfo.weather = "Tempesta";
+            break;
+        case WIFI_STATION::PIOVIGGINE:
+            Server_RA.dataGet.weatherInfo.weather = "Pioviggine";
+            break;
+        case WIFI_STATION::PIOGGIA:
+            Server_RA.dataGet.weatherInfo.weather = "Pioggia";
+            break;
+        case WIFI_STATION::NEVE:
+            Server_RA.dataGet.weatherInfo.weather = "Neve";
+            break;
+        case WIFI_STATION::NEBBIA:
+            Server_RA.dataGet.weatherInfo.weather = "Nebbia";
+            break;
+        case WIFI_STATION::LIMPIDO:
+            Server_RA.dataGet.weatherInfo.weather = "Limpido";
+            break;
+        case WIFI_STATION::NUVOLOSO:
+            Server_RA.dataGet.weatherInfo.weather = "Nuvoloso";
+            break;                                       
+        default:
+            Server_RA.dataGet.weatherInfo.weather = "Terso";
+            break;
+    }
+    Server_RA.dataGet.weatherInfo.temperature = String(wifiStation->weatherInfo.temperature).c_str();
+    Server_RA.dataGet.weatherInfo.humidity = String(wifiStation->weatherInfo.humidity).c_str();
+    wakeLedAlarm->getAlarmTime(AlarmH, AlarmM);
+    String AlarmTimeStr = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
+    Server_RA.dataGet.alarmHour = AlarmTimeStr.c_str();
+    AlarmTimeStr = AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
+    Server_RA.dataGet.alarmMinute = AlarmTimeStr.c_str();
+    Server_RA.dataGet.alarmSettingStr = wakeLedAlarm->isAlarmSet() ? "Allarme impostato" : "Allarme non impostato";
+    Server_RA.dataGet.ledTime = String(preAccensionTime).c_str();
+    Server_RA.dataGet.snoozeTime = String(wakeLedAlarm->getSnoozeTime()).c_str();
+    Server_RA.dataGet.restartAlarmTime = String(wakeLedAlarm->getReactiveAlarmTime()).c_str();
+    Server_RA.dataGet.displayBrightnessMode = displayBrightnessAuto == true ? "auto" : "manuale";
+    Server_RA.dataGet.displayBrightness = String(display->getDisplayLedBrightness()).c_str();
+    Server_RA.dataGet.backlightTime = String(display->getDisplayLedTurnoffTime()).c_str();
+    Server_RA.dataGet.fwVersion = VERSION;
+    Server_RA.dataGet.uptime = getUpTimeStr().c_str();
+}
+
+void WAKE_LED::changeDataFromServer()
+{
+    if(Server_RA.dataPost.flags.alarmTime)
+    {
+        Server_RA.dataPost.flags.alarmTime = false;
+        wakeLedAlarm->setAlarmTime(Server_RA.dataPost.alarmHour, Server_RA.dataPost.alarmMinute);
+        wakeLedAlarm->setAlarm();
+    }
+    if(Server_RA.dataPost.flags.alarmSetting)
+    {
+        Server_RA.dataPost.flags.alarmSetting = false;
+        if(Server_RA.dataPost.alarmSet)
+            wakeLedAlarm->setAlarm();
+        else
+            wakeLedAlarm->resetAlarm();
+    }
+    if(Server_RA.dataPost.flags.setLedTime)
+    {
+        Server_RA.dataPost.flags.setLedTime = false;
+        preAccensionTime = Server_RA.dataPost.ledTime;
+    }
+    if(Server_RA.dataPost.flags.setSnoozeTime)
+    {
+        Server_RA.dataPost.flags.setSnoozeTime = false;
+        wakeLedAlarm->setSnoozeTime(Server_RA.dataPost.snoozeTime);
+    }
+    if(Server_RA.dataPost.flags.setRestartTime)
+    {
+        Server_RA.dataPost.flags.setRestartTime = false;
+        wakeLedAlarm->setReactiveAlarmTime(Server_RA.dataPost.restartAlarmTime);
+    }
+    if(Server_RA.dataPost.flags.setDisplayBrightnessMode)
+    {
+        Server_RA.dataPost.flags.setDisplayBrightnessMode = false;
+        displayBrightnessAuto = Server_RA.dataPost.displayBrightnessMode;
+    }
+    if(Server_RA.dataPost.flags.setDisplayBrightness)
+    {
+        Server_RA.dataPost.flags.setDisplayBrightness = false;
+        display->setDisplayLedBrightness(Server_RA.dataPost.displayBrightness);
+    }
+    if(Server_RA.dataPost.flags.setBacklight)
+    {
+        Server_RA.dataPost.flags.setBacklight = false;
+        display->setDisplayLedTurnoffTime(Server_RA.dataPost.backlightTime);
+    }
+}
+
 WAKE_LED::WAKE_LED()
 {
     display = new NHDST7565();
@@ -1339,6 +1444,7 @@ WAKE_LED::WAKE_LED()
     preAccensionTimer = new Chrono(Chrono::SECONDS, false);
     autoBrightnessTimer = new Chrono(Chrono::SECONDS, false);
     upTimeTimer = new Chrono(Chrono::SECONDS);
+    refreshServerDataTimer = new Chrono(Chrono::SECONDS);
     autoBrightnessTimer->restart();
 }
 

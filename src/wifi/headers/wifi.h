@@ -11,7 +11,6 @@
 #include <Chrono.h>
 #include <ctime>
 #include <string>
-// #include "../../debug/headers/debug.h"
 
 typedef String WifiString;
 
@@ -46,7 +45,6 @@ class WIFI_STATION
         DispString getWeekday();
         void legalHourShift();
         IPAddress *myIp;
-        
 
     public:
         typedef struct 

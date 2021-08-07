@@ -60,6 +60,7 @@ class WAKE_LED
         Chrono *preAccensionTimer;
         Chrono *autoBrightnessTimer;
         Chrono *upTimeTimer;
+        Chrono *refreshServerDataTimer;
         int autoBrightnessValue;
         uint8_t wakeScreen = MAIN_SCREEN;
         uint16_t preAccensionTime = 5; // In minuti
@@ -92,6 +93,9 @@ class WAKE_LED
         void setDisplayBrightness();
         void showSystemInfo();
         void setBacklightInitEndHour();
+        
+        void refreshServerData();
+        void changeDataFromServer();
 
     public:
         WAKE_LED();
