@@ -1374,10 +1374,10 @@ void WAKE_LED::refreshServerData()
     Server_RA.dataGet.weatherInfo.humidity = String(wifiStation->weatherInfo.humidity).c_str();
     Server_RA.dataGet.weatherInfo.humidity += "%";
     wakeLedAlarm->getAlarmTime(AlarmH, AlarmM);
-    String AlarmT = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
-    AlarmT += ":";
-    AlarmT += AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
-    Server_RA.dataGet.alarmTime = AlarmT.c_str();
+    String AlarmTimeStr = AlarmH > 9 ? String(AlarmH) : "0" + String(AlarmH);
+    Server_RA.dataGet.alarmHour = AlarmTimeStr.c_str();
+    AlarmTimeStr = AlarmM > 9 ? String(AlarmM) : "0" + String(AlarmM);
+    Server_RA.dataGet.alarmMinute = AlarmTimeStr.c_str();
     Server_RA.dataGet.alarmSettingStr = wakeLedAlarm->isAlarmSet() ? "Allarme impostato" : "Allarme non impostato";
     Server_RA.dataGet.ledTime = String(preAccensionTime).c_str();
     Server_RA.dataGet.ledTime += " min";

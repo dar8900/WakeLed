@@ -29,6 +29,7 @@ enum
     HTTP_NOT_FOUND = 404,
     HTTP_METHOD_NOT_ALLOWED = 405,
     HTTP_SERVER_ERROR = 500,
+    HTTP_SERVICE_UVAILABLE = 503,
     NO_CODE = 0
 };
 
@@ -47,7 +48,8 @@ class RESTAPI_SERVER
         ServerString time;
         ServerString date;
         SERVER_WEATHER_INFO weatherInfo;
-        ServerString alarmTime;
+        ServerString alarmHour;
+        ServerString alarmMinute;
         ServerString alarmSettingStr;
         ServerString ledTime;
         ServerString snoozeTime;
@@ -96,6 +98,7 @@ class RESTAPI_SERVER
     RESTAPI_POST_REQ_DATA dataPost;
     void clearMessages();
     bool parseJSONReqDone();
+    void composeErrorMessage(uint16_t HttpCode);
     void getMethod(); 
     void serverInit();
     void serverRun();
