@@ -28,6 +28,7 @@ enum
     HTTP_BAD_REQUEST = 400,
     HTTP_NOT_FOUND = 404,
     HTTP_METHOD_NOT_ALLOWED = 405,
+    HTTP_NOT_ACCETABLE = 406,
     HTTP_SERVER_ERROR = 500,
     HTTP_SERVICE_UVAILABLE = 503,
     NO_CODE = 0
@@ -97,6 +98,7 @@ class RESTAPI_SERVER
     RESTAPI_GET_REQ_DATA dataGet;
     RESTAPI_POST_REQ_DATA dataPost;
     void clearMessages();
+    bool checkExistingKey(ServerString KeyVal = "");
     bool parseJSONReqDone();
     void composeAndSendMessage(uint16_t HttpCode = NO_CODE);
     void getMethod(); 

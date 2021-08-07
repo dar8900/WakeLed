@@ -23,7 +23,31 @@ void onRoot()
     uint16_t HttpCode = NO_CODE;
     if(Server_RA.reqMethod == GET_REQ)
     {
-        Server_RA.respBody = "{\"messaggio\": \"Ciao da WakeLed!\"}";
+        Server_RA.respBody = "{\"messaggio\": \"Ciao da WakeLed!\", \"pagine\": [ \
+            \"commands (no POST)\", \
+            \"time (no POST)\", \
+            \"date (no POST)\", \
+            \"weather (no POST)\", \
+            \"alarm_time\", \
+            \"alarm_setting\", \
+            \"led_time\", \
+            \"snooze_time\", \
+            \"restart_alarm_time\", \
+            \"display_brightness_mode\", \
+            \"display_brightness\", \
+            \"backlight_time\", \
+            \"fw_version (no POST)\", \
+            \"uptime (no POST)\" \
+            ], \"comandi\": [ \
+            [\"ora_allarme\", \"minuto_allarme\"], \
+            \"impostazione_allarme\", \
+            \"tempo_led\", \
+            \"tempo_snooze\", \
+            \"tempo_restart_allarme\", \
+            \"modalità_luminosità\", \
+            \"luminosità_backlight\", \
+            \"tempo_backlight\", \
+        ]}";
         HttpCode = HTTP_OK;
     } 
     else
@@ -31,6 +55,47 @@ void onRoot()
         HttpCode = HTTP_METHOD_NOT_ALLOWED;
     }
     Server_RA.composeAndSendMessage(HttpCode);
+}
+
+void onCommands()
+{
+    Server_RA.getMethod(); 
+    Server_RA.clearMessages();
+    uint16_t HttpCode = NO_CODE;
+    if(Server_RA.reqMethod == GET_REQ)
+    {
+        Server_RA.respBody = "{\"pagine\": [ \
+            \"commands (no POST)\", \
+            \"time (no POST)\", \
+            \"date (no POST)\", \
+            \"weather (no POST)\", \
+            \"alarm_time\", \
+            \"alarm_setting\", \
+            \"led_time\", \
+            \"snooze_time\", \
+            \"restart_alarm_time\", \
+            \"display_brightness_mode\", \
+            \"display_brightness\", \
+            \"backlight_time\", \
+            \"fw_version (no POST)\", \
+            \"uptime (no POST)\" \
+            ], \"comandi\": [ \
+            [\"ora_allarme\", \"minuto_allarme\"], \
+            \"impostazione_allarme\", \
+            \"tempo_led\", \
+            \"tempo_snooze\", \
+            \"tempo_restart_allarme\", \
+            \"modalità_luminosità\", \
+            \"luminosità_backlight\", \
+            \"tempo_backlight\", \
+        ]}";
+        HttpCode = HTTP_OK;
+    }
+    else
+    {
+        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+    }
+    Server_RA.composeAndSendMessage(HttpCode);     
 }
 
 void onTime()
@@ -79,9 +144,9 @@ void onWeatherInfo()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"temperatura\": \"";
+        Server_RA.respBody = "{\"temperatura (°C)\": \"";
         Server_RA.respBody += Server_RA.dataGet.weatherInfo.temperature;
-        Server_RA.respBody += "\", \"umidita_percentuale\": \"";
+        Server_RA.respBody += "\", \"umidità (%)\": \"";
         Server_RA.respBody += Server_RA.dataGet.weatherInfo.humidity;
         Server_RA.respBody += "\", \"meteo\": \"";
         Server_RA.respBody += Server_RA.dataGet.weatherInfo.weather;
@@ -103,9 +168,9 @@ void onAlarmTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "\"ora_allarme\": \"";
+        Server_RA.respBody = "{\"ora_allarme\": \"";
         Server_RA.respBody += Server_RA.dataGet.alarmHour;
-        Server_RA.respBody += "\", \"minuto_allarme\":\"}";
+        Server_RA.respBody += "\", \"minuto_allarme\":\"";
         Server_RA.respBody += Server_RA.dataGet.alarmMinute;
         Server_RA.respBody += "\"}";
     } 
@@ -114,21 +179,29 @@ void onAlarmTime()
         Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
         if(Server_RA.parseJSONReqDone())
         {
-            uint8_t NewAlarmHour = Server_RA.JSON_Doc["ora_allarme"];
-            uint8_t NewAlarmMinute = Server_RA.JSON_Doc["minuto_allarme"];
-            if((NewAlarmHour >= 0 && NewAlarmHour <= 23) &&
-                (NewAlarmMinute >= 0 && NewAlarmMinute <= 59))
+            if(Server_RA.checkExistingKey("ora_allarme") && Server_RA.checkExistingKey("minuto_allarme"))
             {
-                Server_RA.dataPost.alarmHour = NewAlarmHour;
-                Server_RA.dataPost.alarmMinute = NewAlarmMinute;
-                Server_RA.dataPost.flags.alarmTime = true;
-                Server_RA.respBody = "{\"messaggio\": \"Orario allarme impostato\"}";
-                HttpCode = HTTP_OK;
+                uint8_t NewAlarmHour = Server_RA.JSON_Doc["ora_allarme"];
+                uint8_t NewAlarmMinute = Server_RA.JSON_Doc["minuto_allarme"];
+                if((NewAlarmHour >= 0 && NewAlarmHour <= 23) &&
+                    (NewAlarmMinute >= 0 && NewAlarmMinute <= 59))
+                {
+                    Server_RA.dataPost.alarmHour = NewAlarmHour;
+                    Server_RA.dataPost.alarmMinute = NewAlarmMinute;
+                    Server_RA.dataPost.flags.alarmTime = true;
+                    Server_RA.respBody = "{\"messaggio\": \"Orario allarme impostato\"}";
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;           
+                }
             }
             else
             {
-                HttpCode = HTTP_BAD_REQUEST;           
-            }
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }            
         }
         else
         {
@@ -155,24 +228,32 @@ void onAlarmSetting()
         Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
         if(Server_RA.parseJSONReqDone())
         {
-            const char *AlarmStatus = Server_RA.JSON_Doc["impostazione_allarme"];
-            String AlarmStatusStr = String(AlarmStatus);
-            HttpCode = HTTP_OK;
-            if(AlarmStatusStr.equals("set"))
+            if(Server_RA.checkExistingKey("impostazione_allarme"))
             {
-                Server_RA.dataPost.alarmSet = true;
-                Server_RA.dataPost.flags.alarmSetting = true;
-                Server_RA.respBody = "{\"messaggio\": \"Allarme impostato\"";
-            }
-            else if(AlarmStatusStr.equals("reset"))
-            {
-                Server_RA.dataPost.alarmSet = false;
-                Server_RA.dataPost.flags.alarmSetting = true;
-                Server_RA.respBody = "{\"messaggio\": \"Allarme non impostato\"";
+                const char *AlarmStatus = Server_RA.JSON_Doc["impostazione_allarme"];
+                String AlarmStatusStr = String(AlarmStatus);
+                HttpCode = HTTP_OK;
+                if(AlarmStatusStr.equals("set"))
+                {
+                    Server_RA.dataPost.alarmSet = true;
+                    Server_RA.dataPost.flags.alarmSetting = true;
+                    Server_RA.respBody = "{\"messaggio\": \"Allarme impostato\"}";
+                }
+                else if(AlarmStatusStr.equals("reset"))
+                {
+                    Server_RA.dataPost.alarmSet = false;
+                    Server_RA.dataPost.flags.alarmSetting = true;
+                    Server_RA.respBody = "{\"messaggio\": \"Allarme non impostato\"}";
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
             }
             else
             {
                 HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}"; 
             }
         }
         else
@@ -191,15 +272,39 @@ void onLedTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tempo_led\": \"";
+        Server_RA.respBody = "{\"tempo_led (min)\": \"";
         Server_RA.respBody += Server_RA.dataGet.ledTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
         Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
-
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("tempo_led"))
+            {
+                uint16_t LedTime = Server_RA.JSON_Doc["tempo_led"];
+                if((LedTime >= 5 && LedTime <= 30) && LedTime % 5 == 0)
+                {
+                    Server_RA.dataPost.ledTime = LedTime;
+                    Server_RA.dataPost.flags.setLedTime = true;
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }            
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -212,13 +317,39 @@ void onSnoozeTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tempo_snooze\": \"";
+        Server_RA.respBody = "{\"tempo_snooze (min)\": \"";
         Server_RA.respBody += Server_RA.dataGet.snoozeTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("tempo_snooze"))
+            {
+                uint16_t Snoozetime = Server_RA.JSON_Doc["tempo_snooze"];
+                if((Snoozetime >= 5 && Snoozetime <= 30) && Snoozetime % 5 == 0)
+                {
+                    Server_RA.dataPost.snoozeTime = Snoozetime;
+                    Server_RA.dataPost.flags.setSnoozeTime = true;
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }            
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -231,13 +362,39 @@ void onRestartAlarmTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tempo_restart_allarme\": \"";
+        Server_RA.respBody = "{\"tempo_restart_allarme (min)\": \"";
         Server_RA.respBody += Server_RA.dataGet.restartAlarmTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("tempo_restart_allarme"))
+            {
+                uint16_t RestartTime = Server_RA.JSON_Doc["tempo_restart_allarme"];
+                if((RestartTime >= 5 && RestartTime <= 30) && RestartTime % 5 == 0)
+                {
+                    Server_RA.dataPost.restartAlarmTime = RestartTime;
+                    Server_RA.dataPost.flags.setRestartTime = true;
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }   
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -256,7 +413,40 @@ void onBrightnessMode()
     } 
     else
     {
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("modalità_luminosità"))
+            {
+                const char *BrightnessModeAuto = Server_RA.JSON_Doc["modalità_luminosità"];
+                String BrightnessModeAutoStr = String(BrightnessModeAuto);
+                if(BrightnessModeAutoStr.equals("auto"))
+                {
+                    Server_RA.dataPost.displayBrightnessMode = true;
+                    Server_RA.dataPost.flags.setDisplayBrightnessMode = true;
+                    HttpCode = HTTP_OK;
+                }
+                else if(BrightnessModeAutoStr.equals("manuale"))
+                {
+                    Server_RA.dataPost.displayBrightnessMode = false;
+                    Server_RA.dataPost.flags.setDisplayBrightnessMode = true;
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }               
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -269,13 +459,47 @@ void onBrightness()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"luminosità_attuale\": \"";
+        Server_RA.respBody = "{\"luminosità_backlight\": \"";
         Server_RA.respBody += Server_RA.dataGet.displayBrightness;
         Server_RA.respBody += "\"}";
     } 
     else
     {
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("luminosità_backlight"))
+            {
+                int Brightness = Server_RA.JSON_Doc["luminosità_backlight"];
+                if((Brightness >= 5 && Brightness <= 100) && Brightness % 5 == 0)
+                {
+                    if(Server_RA.dataGet.displayBrightnessMode.compare("manuale") == 0)
+                    {
+                        Server_RA.dataPost.displayBrightness = Brightness;
+                        Server_RA.dataPost.flags.setDisplayBrightness = true;
+                        HttpCode = HTTP_OK;
+                    }
+                    else
+                    {
+                        HttpCode = HTTP_NOT_ACCETABLE;
+                        Server_RA.respBody = "{\"messaggio\": \"Impossibile eseguire, modalità luminosità impostata su auto\"}";           
+                    }
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }   
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -288,13 +512,39 @@ void onBacklightTime()
     if(Server_RA.reqMethod == GET_REQ)
     {
         HttpCode = HTTP_OK;
-        Server_RA.respBody = "{\"tempo_backlight\": \"";
+        Server_RA.respBody = "{\"tempo_backlight (s)\": \"";
         Server_RA.respBody += Server_RA.dataGet.backlightTime;
         Server_RA.respBody += "\"}";
     } 
     else
     {
-        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+        Server_RA.reqBody = Server_RA.server->arg("plain").c_str();
+        if(Server_RA.parseJSONReqDone())
+        {
+            if(Server_RA.checkExistingKey("tempo_backlight"))
+            {
+                uint16_t BacklightTime = Server_RA.JSON_Doc["tempo_backlight"];
+                if((BacklightTime >= 5 && BacklightTime <= 120) && BacklightTime % 5 == 0)
+                {
+                    Server_RA.dataPost.backlightTime = BacklightTime;
+                    Server_RA.dataPost.flags.setBacklight = true;
+                    HttpCode = HTTP_OK;
+                }
+                else
+                {
+                    HttpCode = HTTP_BAD_REQUEST;
+                }
+            }
+            else
+            {
+                HttpCode = HTTP_BAD_REQUEST;
+                Server_RA.respBody = "{\"messaggio\": \"chiave comando mancante o errata\"}";           
+            }   
+        }
+        else
+        {
+            HttpCode = HTTP_SERVER_ERROR;
+        }
     }
     Server_RA.composeAndSendMessage(HttpCode);
 }
@@ -350,7 +600,18 @@ void RESTAPI_SERVER::clearMessages()
     JSON_Doc.clear();
 }
 
-bool RESTAPI_SERVER:: parseJSONReqDone()
+bool RESTAPI_SERVER::checkExistingKey(ServerString KeyVal)
+{
+    bool KeyExists = false;
+    JsonVariant Key =  Server_RA.JSON_Doc[KeyVal.c_str()];
+    if(!Key.isNull())
+    {
+        KeyExists = true;
+    }
+    return KeyExists;
+}
+
+bool RESTAPI_SERVER::parseJSONReqDone()
 {
     bool ParsingDone = false;
     DeserializationError error = deserializeJson(JSON_Doc, reqBody.c_str());
@@ -369,25 +630,28 @@ void RESTAPI_SERVER::composeAndSendMessage(uint16_t HttpCode)
     switch(HttpCode)
     {
         case HTTP_BAD_REQUEST:
-            respBody = "{\"ERRORE\": \"Errore nella scrittura della richiesta\"}";
+            if(respBody.empty())
+                respBody = "{\"ERRORE\": \"Errore nella scrittura della richiesta\"}";
             break;
         case HTTP_NOT_FOUND:
-            respBody = "{\"ERRORE\": \"Pagina non trovata\"}";
+            if(respBody.empty())
+                respBody = "{\"ERRORE\": \"Pagina non trovata\"}";
             break;
         case HTTP_METHOD_NOT_ALLOWED:
-            respBody = "{\"ERRORE\": \"Metodo non permesso\"}";
+            if(respBody.empty())
+                respBody = "{\"ERRORE\": \"Metodo non permesso\"}";
             break;
-        case HTTP_SERVER_ERROR:
-            respBody = "{\"ERRORE\": \"Analisi della richiesta JSON fallita\"}";
+        case HTTP_NOT_ACCETABLE:
+            if(respBody.empty())
+                respBody = "{\"ERRORE\": \"Dati immessi non accetabili\"}";
             break;
         case HTTP_SERVICE_UVAILABLE:
-            respBody = "{\"ERRORE\": \"Pagina non ancora disponibile\"}";
+            if(respBody.empty())
+                respBody = "{\"ERRORE\": \"Pagina non ancora disponibile\"}";
             break;
         case HTTP_OK:
             if(respBody.empty())
-            {
                 respBody = "{\"messaggio\": \"OK\"}";
-            }
             break;
         case NO_CODE:
         case HTTP_SERVER_ERROR:
@@ -426,13 +690,14 @@ void RESTAPI_SERVER::serverInit()
         WakeledDebug.writeDebugString("MSDN service started", "serverInit");
     }
     server->on("/", onRoot);
+    server->on("/commands", onCommands);
     server->on("/time", onTime);
     server->on("/date", onDate);
     server->on("/weather", onWeatherInfo);
     server->on("/alarm_time", onAlarmTime);
     server->on("/alarm_setting", onAlarmSetting);
     server->on("/led_time", onLedTime);
-    server->on("/soonze_time", onSnoozeTime);
+    server->on("/snooze_time", onSnoozeTime);
     server->on("/restart_alarm_time", onRestartAlarmTime);
     server->on("/display_brightness_mode", onBrightnessMode);
     server->on("/display_brightness", onBrightness);
