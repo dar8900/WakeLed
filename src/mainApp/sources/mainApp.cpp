@@ -391,7 +391,9 @@ void WAKE_LED::alarmActiveScreen()
 {
     bool ExitAlarmActive = false;
     int8_t Button = ROTARY::NO_ACTION;
+    bool AlarmScreenExit = false;
     display->manualManageDisplayLed = true;
+    display->manualSwitchLedDisplay(ON);
     while(!ExitAlarmActive)
     {
         display->clearBuff();
@@ -418,11 +420,13 @@ void WAKE_LED::alarmActiveScreen()
         if(irSensor->digitalVal(700, false) == ON)
         {
             wakeLedAlarm->resetAlarm();
-            ExitAlarmActive = true;
-            wakeScreen = MAIN_SCREEN;
+            AlarmScreenExit = true;
         }
-        display->manualSwitchLedDisplay(ON);
         if(!wakeLedAlarm->isAlarmActive())
+        {
+            AlarmScreenExit = true;
+        }
+        if(AlarmScreenExit)
         {
             ExitAlarmActive = true;
             wakeScreen = MAIN_SCREEN;
