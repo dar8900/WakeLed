@@ -46,7 +46,7 @@ void onRoot()
             \"tempo_restart_allarme\", \
             \"modalità_luminosità\", \
             \"luminosità_backlight\", \
-            \"tempo_backlight\", \
+            \"tempo_backlight\" \
         ]}";
         HttpCode = HTTP_OK;
     } 
@@ -87,7 +87,7 @@ void onCommands()
             \"tempo_restart_allarme\", \
             \"modalità_luminosità\", \
             \"luminosità_backlight\", \
-            \"tempo_backlight\", \
+            \"tempo_backlight\" \
         ]}";
         HttpCode = HTTP_OK;
     }
