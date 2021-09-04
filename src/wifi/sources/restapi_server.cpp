@@ -46,7 +46,8 @@ void onRoot()
             \"tempo_restart_allarme\", \
             \"modalità_luminosità\", \
             \"luminosità_backlight\", \
-            \"tempo_backlight\" \
+            \"tempo_backlight\", \
+            \"backlight_on\" \
         ]}";
         HttpCode = HTTP_OK;
     } 
@@ -87,7 +88,8 @@ void onCommands()
             \"tempo_restart_allarme\", \
             \"modalità_luminosità\", \
             \"luminosità_backlight\", \
-            \"tempo_backlight\" \
+            \"tempo_backlight\", \
+            \"backlight_on\" \
         ]}";
         HttpCode = HTTP_OK;
     }
@@ -549,6 +551,31 @@ void onBacklightTime()
     Server_RA.composeAndSendMessage(HttpCode);
 }
 
+void onBacklightOn()
+{
+    Server_RA.getMethod(); 
+    Server_RA.clearMessages();
+    uint16_t HttpCode = NO_CODE;
+    if(Server_RA.reqMethod == POST_REQ)
+    {
+        if(!Server_RA.dataPost.flags.turnOnBacklight)
+        {
+            Server_RA.dataPost.flags.turnOnBacklight = true;
+            HttpCode = HTTP_OK;
+        }
+        else
+        {
+            HttpCode = HTTP_BAD_REQUEST;
+            Server_RA.respBody = "{\"ERRORE\": \" backlight attualmente accesa\"}";
+        }
+    }
+    else
+    {
+        HttpCode = HTTP_METHOD_NOT_ALLOWED;
+    }   
+    Server_RA.composeAndSendMessage(HttpCode);    
+}
+
 void onFwVersion()
 {
     Server_RA.getMethod(); 
@@ -702,6 +729,7 @@ void RESTAPI_SERVER::serverInit()
     server->on("/display_brightness_mode", onBrightnessMode);
     server->on("/display_brightness", onBrightness);
     server->on("/backlight_time", onBacklightTime);
+    server->on("/backlight_on", onBacklightOn);
     server->on("/fw_version", onFwVersion);
     server->on("/uptime", onUptime);
 

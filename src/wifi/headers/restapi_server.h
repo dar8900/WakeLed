@@ -73,6 +73,7 @@ class RESTAPI_SERVER
         bool setDisplayBrightnessMode = false;
         bool setDisplayBrightness = false;
         bool setBacklight = false;
+        bool turnOnBacklight = false;
     }SERVER_SETTINGS_FLAG;
 
     typedef struct 
