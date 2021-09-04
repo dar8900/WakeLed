@@ -78,6 +78,7 @@ class WAKE_LED
         void drawTopInfo();
         void drawWeatherInfo();
         void drawAnalogClock();
+        void checkRestartBacklight(int8_t Button);
 
         void mainScreen();
         void menu();

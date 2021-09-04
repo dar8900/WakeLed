@@ -294,6 +294,18 @@ void WAKE_LED::drawAnalogClock()
     display->drawAngleLine(CLOCK_X_CENTER, CLOCK_Y_CENTER, CLOCK_X_CENTER + XPosSecond, CLOCK_Y_CENTER + YPosSecond); 
 }
 
+void WAKE_LED::checkRestartBacklight(int8_t Button)
+{
+    if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON || Server_RA.dataPost.flags.turnOnBacklight)
+    {
+        display->restartDisplayLedTimer();
+        if(Server_RA.dataPost.flags.turnOnBacklight)
+        {
+            Server_RA.dataPost.flags.turnOnBacklight = false;
+        }
+    }
+}
+
 void WAKE_LED::mainScreen()
 {   
     bool ExitMainScreen = false;
@@ -374,10 +386,11 @@ void WAKE_LED::mainScreen()
         default:
             break;
         }
-        if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
-        {
-            display->restartDisplayLedTimer();
-        }
+        checkRestartBacklight(Button);
+        // if(Button != ROTARY::NO_ACTION || irSensor->digitalVal(700, false) == ON)
+        // {
+        //     display->restartDisplayLedTimer();
+        // }
         if(wakeLedAlarm->isAlarmActive())
         {
             ExitMainScreen = true;
