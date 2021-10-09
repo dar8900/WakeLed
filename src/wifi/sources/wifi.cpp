@@ -103,13 +103,11 @@ void WIFI_STATION::weatherHttpJson()
         WifiString Payload = httpWeatherReq->getString();
         DynamicJsonDocument weatherInfoJSON(1024);
         deserializeJson(weatherInfoJSON, Payload.c_str());
-        weatherInfo.temperature = weatherInfoJSON["main"]["temp"];
-        weatherInfo.temperature -= 273.15;
-        weatherInfo.perceivedTemp = weatherInfoJSON["main"]["feels_like"];
-        weatherInfo.perceivedTemp -= 273.15;
-        weatherInfo.pressure = weatherInfoJSON["main"]["pressure"];
-        weatherInfo.humidity = weatherInfoJSON["main"]["humidity"];
-        weatherInfo.weatherID = weatherInfoJSON["weather"][0]["id"];
+        weatherInfo.temperature = weatherInfoJSON["temp"];
+        weatherInfo.perceivedTemp = weatherInfoJSON["temp_perc"];
+        weatherInfo.pressure = weatherInfoJSON["pressione"];
+        weatherInfo.humidity = weatherInfoJSON["umidita"];
+        weatherInfo.weatherID = weatherInfoJSON["meto_id"];
         if(weatherInfo.weatherID >= 200 && weatherInfo.weatherID < 300)
         {
             weatherInfo.weatherID = TEMPESTA;
@@ -284,7 +282,7 @@ void WIFI_STATION::setOfflineDate(uint8_t Day, uint8_t Month, uint8_t Year)
 
 void WIFI_STATION::initWifiStation()
 {
-    apiWeatherCall = "http://api.openweathermap.org/data/2.5/weather?id=" + BOLOGNA_ID + "&appid=" + WEATHER_API_KEY;
+    apiWeatherCall = PI_SERVER_WEATHER;
     connectToWifi();
     if(wifiConnected)
     {
