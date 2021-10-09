@@ -19,9 +19,8 @@ class WIFI_STATION
     private:
         WiFiUDP *ntpUDP;
         NTPClient *timeClient; //(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-        const WifiString NTP_SERVER = "ntp1.inrim.it";;
-        const WifiString BOLOGNA_ID = "3181927";
-        const WifiString WEATHER_API_KEY = "ec79bf368720417f78abda66d4e47828";
+        const WifiString NTP_SERVER = "ntp1.inrim.it";
+        const WifiString PI_SERVER_WEATHER = "http://192.168.2.12:8080/weather/current";
         bool wifiConnected = false;
         WifiString apiWeatherCall;
         uint16_t localHourShift = 3600; // shift di 1h rispetto all'ora di greenwitch
