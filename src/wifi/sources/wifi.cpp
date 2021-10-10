@@ -148,7 +148,7 @@ void WIFI_STATION::getWeatherInfo(bool TakeInfoNow)
 { 
     if(!TakeInfoNow)
     {
-        if(weatherTimer->hasPassed(300, true))
+        if(weatherTimer->hasPassed(1800, true))
         {
             weatherHttpJson();
         }
